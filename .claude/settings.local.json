@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"/Users/sfityo/Desktop/🔮AI Code\" -type f \\\\\\( -name \"manifest.json\" -o -name \"code.js\" -o -name \"ui.html\" -o -name \"package.json\" -o -name \"*.plugin\" \\\\\\) 2>/dev/null)",
+      "Bash(git init *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'Initial commit: Font Styles Creator Figma plugin *)"
+    ]
+  }
+}

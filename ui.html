@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Inter, sans-serif; font-size: 12px; background: #1e1e1e; color: #e0e0e0; }
+  h2 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+  .subtitle { font-size: 11px; color: #555; margin-bottom: 0; }
+
+  /* ── Tabs ── */
+  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid #2e2e2e; padding: 0 16px; background: #1e1e1e; }
+  .tab-btn { padding: 10px 16px; font-size: 12px; font-weight: 500; color: #666; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; user-select: none; transition: color .15s; }
+  .tab-btn:hover { color: #aaa; }
+  .tab-btn.active { color: #fff; border-bottom-color: #0d99ff; }
+
+  .tab-pane { display: none; padding: 14px 16px; }
+  .tab-pane.active { display: block; }
+
+  /* ── Shared header ── */
+  .plugin-header { padding: 14px 16px 0; }
+
+  /* ── Sections ── */
+  .section { background: #2a2a2a; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .section h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #555; margin-bottom: 10px; letter-spacing: 0.5px; }
+
+  /* ── Buttons ── */
+  button { background: #0d99ff; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 12px; font-weight: 500; transition: background 0.15s; }
+  button:hover { background: #0880d8; }
+  button.secondary { background: #3a3a3a; color: #ccc; }
+  button.secondary:hover { background: #444; }
+  button.success { background: #2f9e44; }
+  button.success:hover { background: #277537; }
+  button.ghost { background: none; color: #555; border: 1px dashed #3a3a3a; font-size: 11px; padding: 4px 10px; }
+  button.ghost:hover { color: #aaa; border-color: #555; background: none; }
+  button.icon-btn { background: none; color: #555; border: none; padding: 2px 5px; font-size: 13px; line-height: 1; cursor: pointer; border-radius: 3px; }
+  button.icon-btn:hover { color: #ff6b6b; background: #3a2a2a; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── Inputs ── */
+  input[type=text], input[type=number], select {
+    background: #333; border: 1px solid #444; border-radius: 5px;
+    color: #e0e0e0; padding: 6px 10px; font-size: 12px; width: 100%;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus { outline: none; border-color: #0d99ff; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  select option { background: #333; }
+
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .row label { width: 80px; color: #aaa; flex-shrink: 0; font-size: 11px; }
+
+  /* ── Status ── */
+  .status { padding: 8px 12px; background: #2e2e2e; border-radius: 6px; font-size: 11px; color: #aaa; margin-bottom: 10px; display: none; border-left: 3px solid #444; line-height: 1.5; }
+  .status.visible { display: block; }
+  .status.error   { color: #ff6b6b; border-left-color: #e84040; }
+  .status.success { color: #69db7c; border-left-color: #40c057; }
+  .status.warn    { color: #fcc419; border-left-color: #f59f00; }
+
+  /* ── Chips ── */
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 5px; border: 1px solid #3a3a3a; background: #2e2e2e; font-size: 11px; color: #bbb; user-select: none; transition: background 0.1s, border-color 0.1s; }
+  .chip.selectable { cursor: pointer; }
+  .chip.selectable:hover { border-color: #555; }
+  .chip.on { background: #1a3a5c; border-color: #0d99ff; color: #5ab8ff; }
+  .chip.custom { border-style: dashed; }
+  .chip input[type=checkbox] { display: none; }
+
+  /* ── Add forms ── */
+  .add-form { display: none; background: #222; border: 1px solid #3a3a3a; border-radius: 6px; padding: 10px; margin-top: 8px; }
+  .add-form.open { display: block; }
+  .add-form .fields { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
+  .add-form .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
+  .add-form .field span { font-size: 10px; color: #666; }
+  .add-form .actions { display: flex; gap: 6px; margin-top: 8px; }
+
+  /* ── Tokens table (Tab 1) ── */
+  .tok-table { width: 100%; border-collapse: collapse; }
+  .tok-table th { text-align: left; font-size: 10px; color: #555; font-weight: 600; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid #333; letter-spacing: .4px; }
+  .tok-table td { padding: 5px 8px; border-bottom: 1px solid #262626; font-size: 11px; }
+  .tok-table td:first-child { font-family: monospace; font-size: 10px; color: #8ab4f8; }
+  .tok-table .val { color: #aaa; }
+  .tok-table .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .tok-table .badge.ok   { background: #1a3a1a; color: #69db7c; }
+  .tok-table .badge.miss { background: #3a1a1a; color: #ff6b6b; }
+  .group-hdr td { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .5px; padding: 10px 8px 4px; background: #242424; }
+
+  /* ── misc ── */
+  .sep { height: 1px; background: #333; margin: 10px 0; }
+  .hint { font-size: 10px; color: #555; margin-top: 6px; line-height: 1.5; }
+  .hint b { color: #777; }
+  .btn-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .preview-count { font-size: 11px; color: #555; margin-top: 8px; }
+  .preview-count b { color: #0d99ff; }
+  .info-banner { display: flex; align-items: flex-start; gap: 8px; background: #1a2a3a; border: 1px solid #2d4a6a; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; font-size: 11px; color: #7db8e0; line-height: 1.5; }
+  .token-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .token-table th { text-align: left; font-size: 10px; color: #555; font-weight: 600; text-transform: uppercase; padding: 4px 6px; border-bottom: 1px solid #333; }
+  .token-table td { padding: 3px 6px; font-size: 11px; color: #bbb; border-bottom: 1px solid #262626; }
+  .token-table td:first-child { color: #5ab8ff; font-family: monospace; font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="plugin-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+  <div>
+    <h2>Font Styles Creator</h2>
+    <p class="subtitle">Tailwind CSS type scale → Figma Text Styles</p>
+  </div>
+  <button onclick="toggleSettings()" title="Library settings" style="background:none;border:none;color:#555;cursor:pointer;font-size:17px;padding:2px 4px;margin-top:2px;line-height:1;transition:color .15s" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">⚙</button>
+</div>
+
+<!-- ── Settings overlay ── -->
+<div id="settings-overlay" onclick="if(event.target===this)toggleSettings()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100">
+  <div style="position:absolute;top:0;right:0;width:300px;height:100%;background:#1e1e1e;border-left:1px solid #2e2e2e;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #2e2e2e">
+      <span style="font-size:12px;font-weight:600;color:#fff">Library Settings</span>
+      <button onclick="toggleSettings()" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1;padding:0" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px 16px">
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Personal Access Token</div>
+        <input type="password" id="settings-token" placeholder="figd_…" style="width:100%" />
+        <p class="hint" style="margin-top:4px">Figma → Profile → Settings → Account → <b>Personal access tokens</b></p>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Library File Key</div>
+        <input type="text" id="settings-filekey" placeholder="XXXXXXXXXXXXXXXX" style="width:100%" />
+        <div style="margin-top:6px;background:#252525;border-radius:6px;padding:8px 10px">
+          <p class="hint" style="margin-bottom:4px">Відкрий бібліотечний файл у Figma і подивись на URL:</p>
+          <p style="font-size:10px;font-family:monospace;color:#555;word-break:break-all;line-height:1.6">figma.com/design/<span style="background:#1a3a5c;color:#5ab8ff;padding:1px 3px;border-radius:3px">XXXXXXXXXXXXXXXX</span>/Назва-файлу</p>
+          <p class="hint" style="margin-top:4px">Виділена частина — це і є File Key. Скопіюй її сюди.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Library Name</div>
+        <input type="text" id="settings-libname" placeholder="Design System" style="width:100%" />
+        <p class="hint" style="margin-top:4px">Довільна назва — наприклад <b>Design System</b> або <b>UI Kit</b>. Відображається як заголовок групи у випадаючому списку стилів.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="saveSettings()" style="width:100%">Save</button>
+        <button onclick="testLibraryConnection()" class="secondary" style="width:100%">Test connection</button>
+        <span id="settings-status" style="font-size:11px;color:#555;text-align:center;min-height:16px"></span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-btn active" onclick="switchTab('tokens')">Tokens</div>
+  <div class="tab-btn" onclick="switchTab('styles')">Styles</div>
+  <div class="tab-btn" onclick="switchTab('preview')">Preview Frame</div>
+  <div class="tab-btn" onclick="switchTab('audit')">Audit</div>
+</div>
+
+<div id="status-global" class="status" style="margin:10px 16px 0"></div>
+<div id="missing-tokens-box" style="display:none;background:#2a2a2a;border:1px solid #f59f00;border-radius:8px;padding:14px;margin:10px 16px 0"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 1 — TOKENS
+══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane active" id="tab-tokens">
+
+  <!-- Setup sub-panel (shown when no Typography collection) -->
+  <div id="setup-panel">
+    <div class="info-banner">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="#7db8e0"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25h-1.5V4.5h1.5zm0 5.75v1.5h-1.5v-1.5h1.5z"/></svg>
+      <span>No <strong>Typography</strong> variable collection found. Create base tokens first.</span>
+    </div>
+    <div class="section">
+      <h3>Font family</h3>
+      <div class="row">
+        <label>Family</label>
+        <input type="text" id="setup-family" value="IBM Plex Sans" placeholder="e.g. Inter" />
+      </div>
+      <p class="hint">Used for <b>fontFamily/body</b> and <b>fontFamily/display</b></p>
+    </div>
+    <div class="section">
+      <h3>Tokens that will be created</h3>
+      <table class="token-table">
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>fontFamily/body</td><td id="preview-family-body">IBM Plex Sans</td></tr>
+        <tr><td>fontFamily/display</td><td id="preview-family-display">IBM Plex Sans</td></tr>
+        <tr><td>fontWeight/Regular … Bold Italic</td><td style="color:#555">8 weight tokens</td></tr>
+        <tr><td>fontSize/text-xs … text-5xl</td><td style="color:#555">9 size tokens</td></tr>
+        <tr><td>lineHeight/text-xs … text-5xl</td><td style="color:#555">9 line-height tokens</td></tr>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Typography Tokens</button>
+      <button onclick="hideSetupPanel()" class="secondary">Skip</button>
+    </div>
+  </div>
+
+  <!-- Token status table (shown when Typography exists) -->
+  <div id="tokens-status-panel" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;color:#555">Typography variable collection</span>
+      <button onclick="refreshTokens()" class="secondary" style="padding:4px 10px;font-size:10px">↻ Refresh</button>
+    </div>
+    <div id="tok-table-wrap"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 2 — STYLES
+══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-styles">
+
+  <!-- Font family -->
+  <div class="section">
+    <h3>Font family</h3>
+    <div class="row">
+      <label>Source</label>
+      <select id="family-select" onchange="onFamilySelectChange()">
+        <option value="__manual__">Enter manually…</option>
+      </select>
+    </div>
+    <div id="manual-family-row" class="row" style="display:none">
+      <label>Family name</label>
+      <input type="text" id="manual-family" placeholder="e.g. Inter" />
+    </div>
+  </div>
+
+  <!-- Sizes -->
+  <div class="section">
+    <h3>Sizes</h3>
+    <div class="chip-grid" id="size-chips"></div>
+    <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(true)">Select all</span>
+      <span style="font-size:10px;color:#444">·</span>
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(false)">Deselect all</span>
+      <span style="font-size:10px;color:#444">·</span>
+      <button class="ghost" onclick="toggleAddSize()">+ Add size</button>
+    </div>
+    <div class="add-form" id="add-size-form">
+      <div class="fields">
+        <div class="field"><span>Token name</span><input type="text" id="new-size-token" placeholder="text-6xl" /></div>
+        <div class="field" style="max-width:70px"><span>Size (px)</span><input type="number" id="new-size-px" placeholder="60" min="1" /></div>
+        <div class="field" style="max-width:80px"><span>Line height (px)</span><input type="number" id="new-size-lh" placeholder="64" min="1" /></div>
+      </div>
+      <div class="actions">
+        <button onclick="addCustomSize()" style="padding:5px 12px;font-size:11px">Add</button>
+        <button onclick="toggleAddSize()" class="secondary" style="padding:5px 12px;font-size:11px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weights -->
+  <div class="section">
+    <h3>Weights</h3>
+    <div class="chip-grid" id="weight-chips"></div>
+    <div style="margin-top:8px">
+      <button class="ghost" onclick="toggleAddWeight()">+ Add weight</button>
+    </div>
+    <div class="add-form" id="add-weight-form">
+      <div class="fields">
+        <div class="field"><span>Label</span><input type="text" id="new-weight-label" placeholder="Light" /></div>
+        <div class="field"><span>Font style string</span><input type="text" id="new-weight-style" placeholder="Light" /></div>
+      </div>
+      <p class="hint" style="margin-top:6px">Must exactly match Figma's font style name (e.g. <b>Semi Bold</b>)</p>
+      <div class="actions">
+        <button onclick="addCustomWeight()" style="padding:5px 12px;font-size:11px">Add</button>
+        <button onclick="toggleAddWeight()" class="secondary" style="padding:5px 12px;font-size:11px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="preview-count" id="preview-count">— styles will be created</p>
+  <div class="btn-row">
+    <button onclick="createStyles()" id="btn-create" class="success">Create Text Styles</button>
+    <button class="secondary" onclick="parent.postMessage({pluginMessage:{type:'cancel'}},'*')">Close</button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 3 — PREVIEW FRAME
+══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-preview">
+
+  <div class="section">
+    <h3>Font family</h3>
+    <div class="row">
+      <label>Source</label>
+      <select id="preview-family-select" onchange="onPreviewFamilyChange()">
+        <option value="__manual__">Enter manually…</option>
+      </select>
+    </div>
+    <div id="preview-manual-row" class="row" style="display:none">
+      <label>Family name</label>
+      <input type="text" id="preview-manual-family" placeholder="e.g. Inter" />
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Base font size</h3>
+    <div class="row">
+      <label>Base (px)</label>
+      <input type="number" id="base-size" value="16" min="1" max="32" style="width:80px" oninput="renderPreviewTable()" />
+    </div>
+    <p class="hint">Used to calculate rem values: <b>rem = px ÷ base</b></p>
+  </div>
+
+  <div class="section">
+    <h3>What will be generated</h3>
+    <div id="preview-table-wrap">
+      <table class="tok-table" style="table-layout:fixed">
+        <colgroup>
+          <col style="width:90px">
+          <col style="width:55px">
+          <col style="width:50px">
+          <col style="width:55px">
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Rem</th>
+            <th>Px</th>
+            <th>LH</th>
+            <th>Weights</th>
+          </tr>
+        </thead>
+        <tbody id="preview-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button onclick="createPreviewFrame()" id="btn-preview" class="success">Create Frame in Figma</button>
+    <button class="secondary" onclick="parent.postMessage({pluginMessage:{type:'cancel'}},'*')">Close</button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 4 — AUDIT
+══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-audit">
+
+  <div class="section">
+    <h3>Scope</h3>
+    <div style="display:flex;gap:16px;margin-bottom:4px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
+        <input type="radio" name="audit-scope" value="frame" style="accent-color:#0d99ff;width:14px;height:14px"> Selected Frame
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
+        <input type="radio" name="audit-scope" value="page" checked style="accent-color:#0d99ff;width:14px;height:14px"> Current Page
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
+        <input type="radio" name="audit-scope" value="document" style="accent-color:#0d99ff;width:14px;height:14px"> Entire Document
+      </label>
+    </div>
+    <p class="hint">Scans text nodes with no Text Style attached. Only texts inside <b>Main Components</b> or standalone (not in any component/instance) are eligible for style assignment.</p>
+  </div>
+
+  <div class="btn-row" id="audit-scan-row" style="margin-bottom:10px">
+    <button onclick="auditScan()" id="btn-audit-scan" class="success">Scan</button>
+  </div>
+
+  <!-- Summary bar -->
+  <div id="audit-summary" style="display:none;font-size:11px;color:#888;margin-bottom:10px;padding:8px 12px;background:#252525;border-radius:6px;display:none">
+    <span id="audit-summary-text"></span>
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="auditSelectAll(true)">Select all</span>
+      <span style="font-size:10px;color:#444">·</span>
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="auditSelectAll(false)">Deselect all</span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="audit-results-wrap"></div>
+
+  <!-- Apply button (hidden until scan) -->
+  <div id="audit-apply-row" style="display:none;margin-top:10px" class="btn-row">
+    <button onclick="auditApply()" id="btn-audit-apply" class="success">Apply Selected Styles</button>
+    <button onclick="auditScan()" class="secondary">Re-scan</button>
+  </div>
+
+</div>
+
+<style>
+  /* ── Audit table ── */
+  .audit-group { margin-bottom: 10px; }
+  .audit-group-hdr {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 10px; background: #252525; border-radius: 6px 6px 0 0;
+    cursor: pointer; user-select: none;
+  }
+  .audit-group-hdr .frame-name { font-size: 11px; font-weight: 600; color: #ccc; }
+  .audit-group-hdr .frame-count { font-size: 10px; color: #555; }
+  .audit-group-body { background: #222; border-radius: 0 0 6px 6px; overflow: hidden; }
+  .audit-row { display: grid; grid-template-columns: 1fr 120px 120px 70px 28px; gap: 0; border-bottom: 1px solid #2a2a2a; padding: 6px 10px; align-items: center; }
+  .audit-row:last-child { border-bottom: none; }
+  .audit-row.no-match { opacity: 0.5; }
+  .audit-col-hdr { display: grid; grid-template-columns: 1fr 120px 120px 70px 28px; gap: 0; padding: 4px 10px; background: #1e1e1e; border-bottom: 1px solid #2a2a2a; }
+  .audit-col-hdr span { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .4px; }
+  .audit-node-name { font-size: 11px; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .audit-current { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .audit-match { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .audit-match.has-match { color: #5ab8ff; }
+  .audit-match.no-match  { color: #555; }
+  .audit-ctx { font-size: 10px; }
+  .ctx-main { color: #a9e34b; }
+  .ctx-plain { color: #666; }
+  .audit-cb input { accent-color: #0d99ff; width: 14px; height: 14px; cursor: pointer; }
+  .audit-sel-btn { background: none; border: 1px solid #3a3a3a; border-radius: 4px; color: #555; font-size: 10px; padding: 2px 6px; cursor: pointer; white-space: nowrap; transition: color .1s, border-color .1s; }
+  .audit-sel-btn:hover { color: #0d99ff; border-color: #0d99ff; background: none; }
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════
+
+const BASE_SCALE = [
+  { token: 'text-xs',  size: 12, lh: 16 },
+  { token: 'text-sm',  size: 14, lh: 20 },
+  { token: 'text-md',  size: 16, lh: 24 },
+  { token: 'text-lg',  size: 18, lh: 28 },
+  { token: 'text-xl',  size: 20, lh: 28 },
+  { token: 'text-2xl', size: 24, lh: 32 },
+  { token: 'text-3xl', size: 30, lh: 36 },
+  { token: 'text-4xl', size: 36, lh: 40 },
+  { token: 'text-5xl', size: 48, lh: 48 },
+];
+
+const BASE_WEIGHTS = [
+  { label: 'Regular',  styleStr: 'Regular' },
+  { label: 'Medium',   styleStr: 'Medium' },
+  { label: 'Semibold', styleStr: 'SemiBold' },
+  { label: 'Bold',     styleStr: 'Bold' },
+];
+
+// Expected tokens (for Tab 1 status table)
+const EXPECTED_TOKENS = [
+  { group: 'Font Family', name: 'fontFamily/body',    type: 'STRING' },
+  { group: 'Font Family', name: 'fontFamily/display',  type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Regular',       type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Regular Italic', type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Medium',        type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Medium Italic',  type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Semibold',       type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Semibold Italic',type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Bold',           type: 'STRING' },
+  { group: 'Font Weight', name: 'fontWeight/Bold Italic',    type: 'STRING' },
+  ...BASE_SCALE.map(s => ({ group: 'Font Size',   name: 'fontSize/' + s.token,   type: 'FLOAT' })),
+  ...BASE_SCALE.map(s => ({ group: 'Line Height', name: 'lineHeight/' + s.token, type: 'FLOAT' })),
+];
+
+let customSizes   = [];
+let customWeights = [];
+let scannedVarNames = new Set();   // names from scan
+let scannedStringVars = [];        // for dropdowns
+
+// ── Library settings ────────────────────────────────────────────────────
+let _settings = { token: '', fileKey: '', libName: '' };
+let _libraryStylesFromAPI = [];
+
+function loadSettings() {
+  // Request saved settings from sandbox (figma.clientStorage)
+  parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
+}
+
+function applySettingsToUI(settings) {
+  _settings = Object.assign({ token: '', fileKey: '', libName: '' }, settings);
+  document.getElementById('settings-token').value   = _settings.token   || '';
+  document.getElementById('settings-filekey').value = _settings.fileKey || '';
+  document.getElementById('settings-libname').value = _settings.libName || '';
+}
+
+function saveSettings() {
+  _settings.token   = document.getElementById('settings-token').value.trim();
+  _settings.fileKey = document.getElementById('settings-filekey').value.trim();
+  _settings.libName = document.getElementById('settings-libname').value.trim();
+  parent.postMessage({ pluginMessage: { type: 'save-settings', settings: _settings } }, '*');
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('settings-overlay');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// Maps numeric font weight + italic flag → style string (fallback if API has no fontStyle)
+function weightToStyleStr(weight, italic) {
+  const map = { 100:'Thin', 200:'ExtraLight', 300:'Light', 400:'Regular', 500:'Medium', 600:'SemiBold', 700:'Bold', 800:'ExtraBold', 900:'Black' };
+  const base = map[weight] || 'Regular';
+  if (!italic) return base;
+  return base === 'Regular' ? 'Italic' : base + ' Italic';
+}
+
+async function fetchLibraryStyles() {
+  const { token, fileKey, libName } = _settings;
+  if (!token || !fileKey) return [];
+  const groupName = libName || 'Library';
+  const headers = { 'X-Figma-Token': token };
+
+  // Step 1: get all styles list
+  const stylesRes = await fetch('https://api.figma.com/v1/files/' + fileKey + '/styles', { headers });
+  if (!stylesRes.ok) {
+    const msg = stylesRes.status === 403 ? 'Invalid token or no access to this file'
+              : stylesRes.status === 404 ? 'File not found — check File Key'
+              : 'HTTP ' + stylesRes.status;
+    throw new Error(msg);
+  }
+  const stylesData = await stylesRes.json();
+  const textStyles = ((stylesData.meta && stylesData.meta.styles) || []).filter(s => s.style_type === 'TEXT');
+  if (textStyles.length === 0) return [];
+
+  // Step 2: fetch node properties to get fontSize / fontStyle for auto-matching
+  // styles API returns node_id with hyphen ("6738-22646"), nodes API needs colon ("6738:22646")
+  const nodeIdsForAPI = textStyles.map(s => s.node_id.replace('-', ':')).join(',');
+  let nodeProps = {}; // keyed by hyphen-format id (matches s.node_id)
+  try {
+    const nodesRes = await fetch(
+      'https://api.figma.com/v1/files/' + fileKey + '/nodes?ids=' + encodeURIComponent(nodeIdsForAPI),
+      { headers }
+    );
+    if (nodesRes.ok) {
+      const nodesData = await nodesRes.json();
+      for (const [id, wrapper] of Object.entries(nodesData.nodes || {})) {
+        const st = wrapper.document && wrapper.document.style;
+        if (st) {
+          // Response keys are colon-format → convert to hyphen for lookup
+          const hyphenId = id.replace(':', '-');
+          nodeProps[hyphenId] = {
+            fontSize:   st.fontSize   || null,
+            fontFamily: st.fontFamily || null,
+            fontStyle:  st.fontStyle  || weightToStyleStr(st.fontWeight, st.italic),
+          };
+        }
+      }
+    }
+  } catch (_) {}
+
+  return textStyles.map(s => {
+    const props = nodeProps[s.node_id] || {}; // s.node_id already in hyphen format
+    return {
+      id:          'lib:' + s.key,
+      name:        s.name,
+      libraryName: groupName,
+      isLibrary:   true,
+      fontSize:    props.fontSize   || null,
+      fontFamily:  props.fontFamily || null,
+      fontStyle:   props.fontStyle  || null,
+    };
+  });
+}
+
+async function testLibraryConnection() {
+  const s = document.getElementById('settings-status');
+  s.style.color = '#aaa'; s.textContent = 'Connecting…';
+  saveSettings();
+  try {
+    const styles = await fetchLibraryStyles();
+    s.style.color = '#69db7c';
+    s.textContent = '✓ Found ' + styles.length + ' text style' + (styles.length !== 1 ? 's' : '');
+  } catch (e) {
+    s.style.color = '#ff6b6b'; s.textContent = '✗ ' + e.message;
+  }
+}
+
+function allSizes()   { return [...BASE_SCALE,   ...customSizes]; }
+function allWeights() { return [...BASE_WEIGHTS, ...customWeights]; }
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+
+function init() {
+  loadSettings();
+  rebuildSizeChips();
+  rebuildWeightChips();
+  updatePreview();
+  renderPreviewTable();
+
+  document.getElementById('setup-family').addEventListener('input', e => {
+    const v = e.target.value || 'IBM Plex Sans';
+    document.getElementById('preview-family-body').textContent = v;
+    document.getElementById('preview-family-display').textContent = v;
+  });
+
+  parent.postMessage({ pluginMessage: { type: 'scan-variables' } }, '*');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['tokens','styles','preview','audit'][i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TAB 1 — TOKENS
+// ═══════════════════════════════════════════════════════════════════════
+
+function renderTokensTable(varNames) {
+  scannedVarNames = new Set(varNames);
+  const wrap = document.getElementById('tok-table-wrap');
+
+  const groups = {};
+  EXPECTED_TOKENS.forEach(t => {
+    if (!groups[t.group]) groups[t.group] = [];
+    groups[t.group].push(t);
+  });
+
+  let html = '<table class="tok-table"><thead><tr><th>Variable</th><th>Type</th><th>Status</th></tr></thead><tbody>';
+  for (const [group, tokens] of Object.entries(groups)) {
+    html += '<tr class="group-hdr"><td colspan="3">' + group + '</td></tr>';
+    tokens.forEach(t => {
+      const exists = scannedVarNames.has(t.name);
+      const badge = exists
+        ? '<span class="badge ok">✓ exists</span>'
+        : '<span class="badge miss">✗ missing</span>';
+      html += '<tr><td>' + t.name + '</td><td style="color:#555">' + t.type + '</td><td>' + badge + '</td></tr>';
+    });
+  }
+  html += '</tbody></table>';
+
+  const missing = EXPECTED_TOKENS.filter(t => !scannedVarNames.has(t.name));
+  if (missing.length > 0) {
+    html += '<div style="margin-top:10px;display:flex;gap:8px;align-items:center">'
+      + '<span style="font-size:11px;color:#ff6b6b">' + missing.length + ' token' + (missing.length > 1 ? 's' : '') + ' missing</span>'
+      + '<button onclick="addAllMissing()" style="padding:4px 12px;font-size:11px;background:#2f9e44;color:#fff;border:none;border-radius:5px;cursor:pointer">Add Missing Tokens</button>'
+      + '</div>';
+  } else {
+    html += '<div style="margin-top:8px;font-size:11px;color:#69db7c">✓ All tokens present</div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+function refreshTokens() {
+  parent.postMessage({ pluginMessage: { type: 'scan-variables' } }, '*');
+}
+
+function addAllMissing() {
+  const missing = EXPECTED_TOKENS
+    .filter(t => !scannedVarNames.has(t.name))
+    .map(t => ({
+      group: t.group,
+      name: t.name,
+      expected: t.type === 'FLOAT'
+        ? (BASE_SCALE.find(s => 'fontSize/'+s.token === t.name || 'lineHeight/'+s.token === t.name) || { size: 0, lh: 0 })
+        : t.name.replace(/.*\//, '')
+    }));
+
+  // Build proper expected values
+  const missingFull = EXPECTED_TOKENS.filter(t => !scannedVarNames.has(t.name)).map(t => {
+    let expected = '';
+    if (t.group === 'Font Size') {
+      const s = BASE_SCALE.find(s => 'fontSize/'+s.token === t.name);
+      expected = s ? s.size + 'px' : '0px';
+    } else if (t.group === 'Line Height') {
+      const s = BASE_SCALE.find(s => 'lineHeight/'+s.token === t.name);
+      expected = s ? s.lh + 'px' : '0px';
+    } else if (t.group === 'Font Family') {
+      expected = document.getElementById('setup-family').value || 'IBM Plex Sans';
+    } else {
+      // Font Weight — extract label after last slash
+      const label = t.name.split('/').slice(1).join('/');
+      const w = BASE_WEIGHTS.find(w => w.label === label);
+      expected = w ? w.styleStr : label;
+    }
+    return { group: t.group, name: t.name, expected };
+  });
+
+  parent.postMessage({
+    pluginMessage: {
+      type: 'create-missing-tokens',
+      missing: missingFull,
+      fontFamily: document.getElementById('setup-family').value || 'IBM Plex Sans'
+    }
+  }, '*');
+}
+
+function hideSetupPanel() {
+  document.getElementById('setup-panel').style.display = 'none';
+  document.getElementById('tokens-status-panel').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CHIPS (shared by Tab 2 + Tab 3)
+// ═══════════════════════════════════════════════════════════════════════
+
+function rebuildSizeChips() {
+  const wrap = document.getElementById('size-chips');
+  wrap.innerHTML = '';
+  allSizes().forEach(s => wrap.appendChild(makeChip(s.token, true, s._custom)));
+  updatePreview();
+}
+
+function rebuildWeightChips() {
+  const wrap = document.getElementById('weight-chips');
+  wrap.innerHTML = '';
+  allWeights().forEach(w => wrap.appendChild(makeChip(w.label, true, w._custom)));
+  updatePreview();
+}
+
+function makeChip(value, checked, isCustom) {
+  const chip = document.createElement('label');
+  chip.className = 'chip selectable' + (checked ? ' on' : '') + (isCustom ? ' custom' : '');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox'; cb.value = value; cb.checked = checked;
+  cb.addEventListener('change', () => { chip.classList.toggle('on', cb.checked); updatePreview(); renderPreviewTable(); });
+  chip.appendChild(cb);
+  chip.appendChild(document.createTextNode(value));
+  if (isCustom) {
+    const del = document.createElement('button');
+    del.className = 'icon-btn'; del.textContent = '×'; del.title = 'Remove';
+    del.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const isSizeChip = !!chip.closest('#size-chips');
+      if (isSizeChip) { customSizes = customSizes.filter(s => s.token !== value); rebuildSizeChips(); }
+      else            { customWeights = customWeights.filter(w => w.label !== value); rebuildWeightChips(); }
+      renderPreviewTable();
+    });
+    chip.appendChild(del);
+  }
+  return chip;
+}
+
+function checkedValues(id) {
+  return Array.from(document.querySelectorAll('#' + id + ' input[type=checkbox]:checked')).map(cb => cb.value);
+}
+
+function selectAllSizes(on) {
+  document.querySelectorAll('#size-chips .chip').forEach(chip => {
+    const cb = chip.querySelector('input');
+    cb.checked = on; chip.classList.toggle('on', on);
+  });
+  updatePreview(); renderPreviewTable();
+}
+
+// ── Add size form ───────────────────────────────────────────────────────
+function toggleAddSize() { document.getElementById('add-size-form').classList.toggle('open'); }
+function addCustomSize() {
+  const token = document.getElementById('new-size-token').value.trim();
+  const size  = parseInt(document.getElementById('new-size-px').value, 10);
+  const lh    = parseInt(document.getElementById('new-size-lh').value, 10);
+  if (!token) { alert('Enter a token name'); return; }
+  if (!size)  { alert('Enter size in px'); return; }
+  if (!lh)    { alert('Enter line height in px'); return; }
+  if (allSizes().some(s => s.token === token)) { alert('Token already exists'); return; }
+  customSizes.push({ token, size, lh, _custom: true });
+  rebuildSizeChips(); renderPreviewTable();
+  document.getElementById('new-size-token').value = '';
+  document.getElementById('new-size-px').value = '';
+  document.getElementById('new-size-lh').value = '';
+  document.getElementById('add-size-form').classList.remove('open');
+}
+
+// ── Add weight form ─────────────────────────────────────────────────────
+function toggleAddWeight() { document.getElementById('add-weight-form').classList.toggle('open'); }
+function addCustomWeight() {
+  const label    = document.getElementById('new-weight-label').value.trim();
+  const styleStr = document.getElementById('new-weight-style').value.trim();
+  if (!label)     { alert('Enter a weight label'); return; }
+  if (!styleStr)  { alert('Enter the font style string'); return; }
+  if (allWeights().some(w => w.label === label)) { alert('Weight already exists'); return; }
+  customWeights.push({ label, styleStr, _custom: true });
+  rebuildWeightChips(); renderPreviewTable();
+  document.getElementById('new-weight-label').value = '';
+  document.getElementById('new-weight-style').value = '';
+  document.getElementById('add-weight-form').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TAB 2 — STYLES
+// ═══════════════════════════════════════════════════════════════════════
+
+function populateFamilyDropdowns(vars) {
+  scannedStringVars = vars;
+  [
+    { sel: 'family-select',         onchange: onFamilySelectChange },
+    { sel: 'preview-family-select', onchange: onPreviewFamilyChange },
+  ].forEach(({ sel, onchange }) => {
+    const el = document.getElementById(sel);
+    while (el.options.length > 1) el.remove(1);
+    vars.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.value;
+      opt.textContent = v.name + ' (' + v.value + ')';
+      el.appendChild(opt);
+    });
+    if (vars.length > 0) { el.selectedIndex = 1; onchange(); }
+  });
+}
+
+function onFamilySelectChange() {
+  const isManual = document.getElementById('family-select').value === '__manual__';
+  document.getElementById('manual-family-row').style.display = isManual ? 'flex' : 'none';
+}
+function getFontFamily() {
+  const sel = document.getElementById('family-select');
+  return sel.value === '__manual__' ? document.getElementById('manual-family').value.trim() : sel.value;
+}
+
+function updatePreview() {
+  const sizes = checkedValues('size-chips');
+  const weights = checkedValues('weight-chips');
+  const total = sizes.length * weights.length;
+  document.getElementById('preview-count').innerHTML = '<b>' + total + '</b> style' + (total !== 1 ? 's' : '') + ' will be created';
+}
+
+function buildPayload() {
+  const checkedSizes   = checkedValues('size-chips');
+  const checkedWeights = checkedValues('weight-chips');
+  const sizeData   = allSizes().filter(s => checkedSizes.includes(s.token)).map(s => ({ token: s.token, size: s.size, lh: s.lh }));
+  const weightData = allWeights().filter(w => checkedWeights.includes(w.label)).map(w => ({ label: w.label, styleStr: w.styleStr }));
+  return { fontFamily: getFontFamily(), sizeData, weightData, sizes: sizeData.map(s => s.token), weights: weightData.map(w => w.label) };
+}
+
+let _pendingPayload = null;
+
+function createStyles() {
+  const family = getFontFamily();
+  if (!family) { showStatus('Enter a font family name.', 'error'); return; }
+  const payload = buildPayload();
+  if (!payload.sizes.length || !payload.weights.length) { showStatus('Select at least one size and weight.', 'error'); return; }
+  _pendingPayload = payload;
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'Checking tokens…';
+  showStatus('Checking required tokens…', '');
+  parent.postMessage({ pluginMessage: { type: 'validate-tokens', ...payload } }, '*');
+}
+
+function doCreateStyles() {
+  if (!_pendingPayload) return;
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  showStatus('Creating text styles…', '');
+  parent.postMessage({ pluginMessage: { type: 'create-styles', ...(_pendingPayload) } }, '*');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TAB 3 — PREVIEW FRAME
+// ═══════════════════════════════════════════════════════════════════════
+
+function onPreviewFamilyChange() {
+  const isManual = document.getElementById('preview-family-select').value === '__manual__';
+  document.getElementById('preview-manual-row').style.display = isManual ? 'flex' : 'none';
+}
+
+function getPreviewFamily() {
+  const sel = document.getElementById('preview-family-select');
+  return sel.value === '__manual__' ? document.getElementById('preview-manual-family').value.trim() : sel.value;
+}
+
+function renderPreviewTable() {
+  const base      = parseInt(document.getElementById('base-size').value, 10) || 16;
+  const checkedSz = checkedValues('size-chips');
+  const checkedWt = checkedValues('weight-chips');
+  const sizes     = allSizes().filter(s => checkedSz.includes(s.token));
+  const weights   = allWeights().filter(w => checkedWt.includes(w.label));
+  const weightLabels = weights.map(w => w.label).join(', ') || '—';
+
+  let html = '';
+  sizes.forEach(s => {
+    const rem = (s.size / base).toFixed(3).replace(/\.?0+$/, '');
+    html += '<tr>'
+      + '<td>' + s.token + '</td>'
+      + '<td class="val">' + rem + 'rem</td>'
+      + '<td class="val">' + s.size + '</td>'
+      + '<td class="val">' + s.lh + '</td>'
+      + '<td class="val" style="color:#888;font-size:10px">' + weightLabels + '</td>'
+      + '</tr>';
+  });
+  document.getElementById('preview-tbody').innerHTML = html || '<tr><td colspan="5" style="color:#555;padding:10px 8px">No sizes selected</td></tr>';
+}
+
+function createPreviewFrame() {
+  const family = getPreviewFamily();
+  if (!family) { showStatus('Enter a font family name.', 'error'); return; }
+
+  const checkedSizes   = checkedValues('size-chips');
+  const checkedWeights = checkedValues('weight-chips');
+  const sizeData   = allSizes().filter(s => checkedSizes.includes(s.token)).map(s => ({ token: s.token, size: s.size, lh: s.lh }));
+  const weightData = allWeights().filter(w => checkedWeights.includes(w.label)).map(w => ({ label: w.label, styleStr: w.styleStr }));
+  if (!sizeData.length || !weightData.length) { showStatus('Select at least one size and weight.', 'error'); return; }
+
+  const btn = document.getElementById('btn-preview');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  showStatus('Generating preview frame…', '');
+
+  parent.postMessage({
+    pluginMessage: {
+      type: 'create-preview-frame',
+      fontFamily: family,
+      sizeData,
+      weightData,
+      baseSize: parseInt(document.getElementById('base-size').value, 10) || 16
+    }
+  }, '*');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TOKEN SETUP (Tab 1)
+// ═══════════════════════════════════════════════════════════════════════
+
+function createTokens() {
+  const family = document.getElementById('setup-family').value.trim() || 'IBM Plex Sans';
+  const btn = document.getElementById('btn-create-tokens');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  parent.postMessage({ pluginMessage: { type: 'create-tokens', fontFamily: family } }, '*');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MISSING TOKENS BOX
+// ═══════════════════════════════════════════════════════════════════════
+
+let _missingTokensCache = [];
+
+function showMissingTokensBox(missing) {
+  _missingTokensCache = missing;
+  const groups = {};
+  missing.forEach(m => { if (!groups[m.group]) groups[m.group] = []; groups[m.group].push(m); });
+  let html = '<div style="font-size:11px;color:#fcc419;margin-bottom:6px;font-weight:600">⚠ Missing tokens (' + missing.length + ')</div>';
+  for (const [group, items] of Object.entries(groups)) {
+    html += '<div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">' + group + '</div>';
+    items.forEach(m => {
+      html += '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #262626"><span style="font-family:monospace;font-size:10px;color:#5ab8ff">' + m.name + '</span><span style="font-size:10px;color:#555">' + m.expected + '</span></div>';
+    });
+  }
+  html += '<div style="display:flex;gap:8px;margin-top:12px">'
+    + '<button id="btn-add-missing" onclick="addMissingTokens()" style="background:#2f9e44;color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:500">Add Missing Tokens</button>'
+    + '<button onclick="hideMissingTokensBox()" style="background:#3a3a3a;color:#ccc;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px">Dismiss</button>'
+    + '</div>';
+  const box = document.getElementById('missing-tokens-box');
+  box.innerHTML = html; box.style.display = 'block';
+}
+
+function hideMissingTokensBox() { document.getElementById('missing-tokens-box').style.display = 'none'; _missingTokensCache = []; }
+
+function addMissingTokens() {
+  const btn = document.getElementById('btn-add-missing');
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
+  parent.postMessage({ pluginMessage: { type: 'create-missing-tokens', missing: _missingTokensCache, fontFamily: getFontFamily() } }, '*');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STATUS
+// ═══════════════════════════════════════════════════════════════════════
+
+function showStatus(text, cls) {
+  const el = document.getElementById('status-global');
+  el.textContent = text;
+  el.className = 'status visible ' + (cls || '');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MESSAGES FROM PLUGIN
+// ═══════════════════════════════════════════════════════════════════════
+
+onmessage = (e) => {
+  const msg = e.data.pluginMessage;
+  if (!msg) return;
+
+  if (msg.type === 'variables-ready') {
+    populateFamilyDropdowns(msg.stringVars);
+    // Tab 1: show correct panel
+    if (msg.hasTypography) {
+      document.getElementById('setup-panel').style.display = 'none';
+      document.getElementById('tokens-status-panel').style.display = 'block';
+      // Trigger full scan to get ALL variable names (STRING + FLOAT)
+      parent.postMessage({ pluginMessage: { type: 'scan-all-variables' } }, '*');
+    } else {
+      document.getElementById('setup-panel').style.display = 'block';
+      document.getElementById('tokens-status-panel').style.display = 'none';
+    }
+    renderPreviewTable();
+  }
+
+  if (msg.type === 'all-variables-ready') {
+    renderTokensTable(msg.varNames);
+  }
+
+  if (msg.type === 'tokens-created') {
+    showStatus('Typography tokens created (family: ' + msg.family + ').', 'success');
+    const btn = document.getElementById('btn-create-tokens');
+    btn.disabled = false; btn.textContent = 'Create Typography Tokens';
+    document.getElementById('setup-panel').style.display = 'none';
+    document.getElementById('tokens-status-panel').style.display = 'block';
+  }
+
+  if (msg.type === 'missing-tokens-created') {
+    hideMissingTokensBox();
+    showStatus('Added ' + msg.added + ' token' + (msg.added !== 1 ? 's' : '') + ' to Typography collection.', 'success');
+    refreshTokens();
+  }
+
+  if (msg.type === 'tokens-ok') { doCreateStyles(); }
+
+  if (msg.type === 'tokens-missing') {
+    const btn = document.getElementById('btn-create');
+    btn.disabled = false; btn.textContent = 'Create Text Styles';
+    showStatus('', '');
+    showMissingTokensBox(msg.missing);
+  }
+
+  if (msg.type === 'styles-created') {
+    const btn = document.getElementById('btn-create');
+    btn.disabled = false; btn.textContent = 'Create Text Styles';
+    _pendingPayload = null;
+    let text = 'Done! Created ' + msg.created + ' style' + (msg.created !== 1 ? 's' : '') + '.';
+    if (msg.skipped) text += ' Skipped ' + msg.skipped + ' (already exist).';
+    if (msg.errors && msg.errors.length) text += ' Errors: ' + msg.errors.slice(0, 3).join(' | ');
+    showStatus(text, msg.errors && msg.errors.length ? 'warn' : 'success');
+  }
+
+  if (msg.type === 'audit-results') {
+    const btn = document.getElementById('btn-audit-scan');
+    btn.disabled = false; btn.textContent = 'Scan';
+    showStatus('', '');
+    const allStyles = [...(msg.localStyles || []), ..._libraryStylesFromAPI];
+    renderAuditResults(msg.items, msg.total, msg.matched, allStyles);
+  }
+
+  if (msg.type === 'audit-applied') {
+    const btn = document.getElementById('btn-audit-apply');
+    btn.disabled = false; btn.textContent = 'Apply Selected Styles';
+    showStatus('Applied ' + msg.applied + ' style' + (msg.applied !== 1 ? 's' : '')
+      + (msg.errors ? ' · ' + msg.errors + ' error(s)' : '') + '.', msg.errors ? 'warn' : 'success');
+    // Re-scan automatically so results stay fresh
+    auditScan();
+  }
+
+  if (msg.type === 'preview-created') {
+    const btn = document.getElementById('btn-preview');
+    btn.disabled = false; btn.textContent = 'Create Frame in Figma';
+    showStatus('Preview frame created with ' + msg.rows + ' rows.', 'success');
+  }
+
+  if (msg.type === 'settings-loaded') {
+    applySettingsToUI(msg.settings || {});
+  }
+
+  if (msg.type === 'settings-saved') {
+    const s = document.getElementById('settings-status');
+    s.style.color = '#69db7c'; s.textContent = '✓ Saved';
+    setTimeout(() => { s.textContent = ''; }, 2000);
+  }
+
+  if (msg.type === 'error') {
+    showStatus(msg.text, 'error');
+    ['btn-create','btn-preview','btn-create-tokens'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) { b.disabled = false; b.textContent = b.textContent.replace('…','').trim(); }
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// TAB 4 — AUDIT
+// ═══════════════════════════════════════════════════════════════════════
+
+// _auditParamGroups: flat list of param-groups across all frame groups
+// each entry: { key, fontFamily, fontSize, fontStyle, nodeIds[], matchedStyleId, matchedStyleName, contexts[] }
+let _auditParamGroups = [];
+let _auditLocalStyles = []; // [{ id, name }]
+
+async function auditScan() {
+  const scope = document.querySelector('input[name="audit-scope"]:checked').value;
+  const btn = document.getElementById('btn-audit-scan');
+  btn.disabled = true;
+  btn.textContent = 'Scanning…';
+  document.getElementById('audit-results-wrap').innerHTML = '';
+  document.getElementById('audit-summary').style.display = 'none';
+  document.getElementById('audit-apply-row').style.display = 'none';
+
+  // Fetch library styles from REST API if configured
+  _libraryStylesFromAPI = [];
+  if (_settings.token && _settings.fileKey) {
+    showStatus('Loading library styles…', '');
+    try {
+      _libraryStylesFromAPI = await fetchLibraryStyles();
+    } catch (e) {
+      showStatus('Library fetch failed: ' + e.message + '. Continuing with local styles only.', 'warn');
+    }
+  }
+
+  showStatus('Scanning text nodes…', '');
+  parent.postMessage({ pluginMessage: { type: 'audit-scan', scope } }, '*');
+}
+
+function buildStyleSelect(pgIdx, selectedId) {
+  const sortByName = (a, b) => a.name.localeCompare(b.name);
+  const local   = _auditLocalStyles.filter(s => !s.isLibrary).sort(sortByName);
+  const library = _auditLocalStyles.filter(s => s.isLibrary);
+
+  // Group library styles by libraryName, sorted within each group
+  const libGroups = {};
+  library.forEach(s => {
+    const g = s.libraryName || 'Library';
+    if (!libGroups[g]) libGroups[g] = [];
+    libGroups[g].push(s);
+  });
+  for (const g of Object.keys(libGroups)) libGroups[g].sort(sortByName);
+
+  let opts = '<option value="">— no style —</option>';
+
+  if (local.length > 0) {
+    opts += '<optgroup label="Local styles">';
+    local.forEach(s => {
+      opts += '<option value="' + escHtml(s.id) + '"' + (s.id === selectedId ? ' selected' : '') + '>' + escHtml(s.name) + '</option>';
+    });
+    opts += '</optgroup>';
+  }
+
+  for (const [groupName, styles] of Object.entries(libGroups)) {
+    opts += '<optgroup label="' + escHtml(groupName) + '">';
+    styles.forEach(s => {
+      opts += '<option value="' + escHtml(s.id) + '"' + (s.id === selectedId ? ' selected' : '') + '>' + escHtml(s.name) + '</option>';
+    });
+    opts += '</optgroup>';
+  }
+
+  return '<select class="audit-style-sel" data-pg="' + pgIdx + '" style="background:#2e2e2e;border:1px solid #3a3a3a;border-radius:4px;color:#e0e0e0;font-size:10px;padding:3px 6px;width:100%">' + opts + '</select>';
+}
+
+function renderAuditResults(data, total, matched, localStyles) {
+  _auditLocalStyles = localStyles || [];
+  _auditParamGroups = [];
+
+  const wrap = document.getElementById('audit-results-wrap');
+
+  // Support both old {groups:[]} and new {items:[]} payload shapes
+  const items = data && Array.isArray(data) ? data : [];
+
+  if (total === 0 || items.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 0;font-size:11px;color:#555">No text nodes found</div>';
+    document.getElementById('audit-scan-row').style.display = '';
+    showStatus('', '');
+    return;
+  }
+
+  // Group globally by fontFamily + fontSize + fontStyle (color never included)
+  const paramMap = {};
+  items.forEach(item => {
+    // Split styled vs unstyled nodes into separate groups so each can be
+    // selected and applied independently.
+    const styled = !!item.hasStyle;
+    const key = item.fontFamily + '|' + item.fontSize + '|' + item.fontStyle + '|' + (styled ? 'styled' : 'unstyled');
+    if (!paramMap[key]) {
+      paramMap[key] = {
+        key,
+        fontFamily:       item.fontFamily,
+        fontSize:         item.fontSize,
+        fontStyle:        item.fontStyle,
+        hasStyle:         styled,
+        matchedStyleId:   item.matchedStyleId,
+        matchedStyleName: item.matchedStyleName,
+        nodeIds:          [],
+        frameNames:       new Set(),
+        contexts:         new Set(),
+        styledCount:      0,
+        unstyledCount:    0
+      };
+    }
+    const pg = paramMap[key];
+    pg.nodeIds.push(item.nodeId);
+    pg.frameNames.add(item.frameName);
+    pg.contexts.add(item.context);
+    if (styled) pg.styledCount++;
+    else        pg.unstyledCount++;
+  });
+
+  // Unstyled groups first, then styled — keeps the actionable rows on top.
+  const paramGroups = Object.values(paramMap).sort((a, b) =>
+    (a.hasStyle === b.hasStyle) ? 0 : (a.hasStyle ? 1 : -1));
+
+  // Auto-match library styles for groups that have no local match yet
+  const libStylesWithProps = (localStyles || []).filter(s => s.isLibrary && s.fontSize != null && s.fontStyle);
+  paramGroups.forEach(pg => {
+    if (!pg.matchedStyleId) {
+      const match = libStylesWithProps.find(s =>
+        s.fontSize === pg.fontSize &&
+        s.fontStyle.toLowerCase() === pg.fontStyle.toLowerCase()
+      );
+      if (match) {
+        pg.matchedStyleId   = match.id;
+        pg.matchedStyleName = match.name;
+      }
+    }
+  });
+
+  let html = '';
+  html += '<div class="audit-col-hdr" style="grid-template-columns:1fr 56px 150px 50px 70px 28px">'
+    + '<span>Font params</span><span>Count</span><span>Apply style</span><span>Ctx</span><span></span>'
+    + '<span title="Select / deselect all"><input type="checkbox" id="audit-toggle-all" checked onchange="auditToggleAll(this.checked)" style="accent-color:#0d99ff;width:14px;height:14px;cursor:pointer"></span>'
+    + '</div>';
+
+  paramGroups.forEach((pg, pgIdx) => {
+    _auditParamGroups.push(pg);
+
+    const hasMatch = !!pg.matchedStyleId;
+    const ctxSet   = Array.from(pg.contexts);
+    const ctxHtml  = ctxSet.map(c => c === 'main-component'
+      ? '<span class="ctx-main" title="Main Component">🧩</span>'
+      : '<span class="ctx-plain" title="Standalone">📄</span>').join(' ');
+
+    const paramsStr   = pg.fontFamily + ' ' + pg.fontSize + 'px ' + pg.fontStyle;
+    const framesList  = Array.from(pg.frameNames).slice(0, 3).map(escHtml).join(', ')
+                      + (pg.frameNames.size > 3 ? ' +' + (pg.frameNames.size - 3) + ' more' : '');
+    const framesTitle = Array.from(pg.frameNames).map(escHtml).join('\n');
+
+    // Count badge: show styled vs unlinked breakdown
+    let countHtml;
+    if (pg.styledCount > 0 && pg.unstyledCount > 0) {
+      countHtml = '<span style="display:flex;flex-direction:column;gap:2px">'
+        + '<span style="background:#1a3a1a;border-radius:3px;padding:1px 5px;font-size:9px;color:#69db7c">✓ ' + pg.styledCount + '</span>'
+        + '<span style="background:#3a1a1a;border-radius:3px;padding:1px 5px;font-size:9px;color:#ff8080">○ ' + pg.unstyledCount + '</span>'
+        + '</span>';
+    } else if (pg.styledCount > 0) {
+      countHtml = '<span style="background:#1a3a1a;border-radius:4px;padding:1px 6px;font-size:10px;color:#69db7c">✓ ×' + pg.styledCount + '</span>';
+    } else {
+      countHtml = '<span style="background:#3a1a1a;border-radius:4px;padding:1px 6px;font-size:10px;color:#ff8080">○ ×' + pg.unstyledCount + '</span>';
+    }
+
+    const styleSelect = buildStyleSelect(pgIdx, pg.matchedStyleId || '');
+    const selBtn = '<button class="audit-sel-btn" onclick="auditSelectNodes(' + pgIdx + ')" title="Select in Figma">⌖ Select</button>';
+
+    html += '<div class="audit-row' + (hasMatch ? '' : ' no-match') + '" style="grid-template-columns:1fr 56px 150px 50px 70px 28px;align-items:center">'
+      + '<div style="font-size:11px;min-width:0">'
+        + '<div class="audit-current" style="color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escHtml(paramsStr) + '">' + escHtml(paramsStr) + '</div>'
+        + (pg.frameNames.size > 0 ? '<div style="font-size:9px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px" title="' + framesTitle + '">' + framesList + '</div>' : '')
+      + '</div>'
+      + '<div style="padding:0 4px">' + countHtml + '</div>'
+      + '<div>' + styleSelect + '</div>'
+      + '<div class="audit-ctx">' + ctxHtml + '</div>'
+      + '<div>' + selBtn + '</div>'
+      + '<div class="audit-cb"><input type="checkbox" ' + (hasMatch ? 'checked' : '') + ' data-pg="' + pgIdx + '"></div>'
+      + '</div>';
+  });
+
+  wrap.innerHTML = html;
+
+  // Summary
+  const noMatch = _auditParamGroups.filter(pg => !pg.matchedStyleId).length;
+  const matchedPgCount = _auditParamGroups.filter(pg => pg.matchedStyleId).length;
+
+  const sumEl = document.getElementById('audit-summary');
+  document.getElementById('audit-summary-text').innerHTML =
+    'Found <b style="color:#e0e0e0">' + items.length + '</b> nodes · '
+    + '<b style="color:#5ab8ff">' + matchedPgCount + '</b> group' + (matchedPgCount !== 1 ? 's' : '') + ' matched · '
+    + '<b style="color:#555">' + noMatch + '</b> no match';
+  sumEl.style.display = 'block';
+  document.getElementById('audit-apply-row').style.display = paramGroups.length > 0 ? 'flex' : 'none';
+  // Re-scan lives in the apply row now, so hide the standalone Scan button.
+  document.getElementById('audit-scan-row').style.display = paramGroups.length > 0 ? 'none' : '';
+}
+
+function toggleAuditGroup(gi) {
+  const body = document.getElementById('audit-gb-' + gi);
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+function auditSelectAll(on) {
+  auditToggleAll(on);
+}
+
+function auditToggleAll(on) {
+  document.querySelectorAll('#audit-results-wrap input[type=checkbox][data-pg]').forEach(cb => {
+    cb.checked = on;
+  });
+  const master = document.getElementById('audit-toggle-all');
+  if (master) master.checked = on;
+}
+
+function auditSelectNodes(pgIdx) {
+  const pg = _auditParamGroups[pgIdx];
+  if (!pg) return;
+  parent.postMessage({ pluginMessage: { type: 'audit-select', nodeIds: pg.nodeIds } }, '*');
+}
+
+function auditApply() {
+  // Collect { nodeId, styleId } pairs from checked param-groups
+  const items = [];
+  document.querySelectorAll('#audit-results-wrap input[type=checkbox]:checked').forEach(cb => {
+    const pgIdx   = parseInt(cb.dataset.pg, 10);
+    const pg      = _auditParamGroups[pgIdx];
+    if (!pg) return;
+    // Resolve selected styleId from the matching select
+    const sel     = document.querySelector('.audit-style-sel[data-pg="' + pgIdx + '"]');
+    const styleId = sel ? sel.value : pg.matchedStyleId;
+    if (!styleId) return;
+    pg.nodeIds.forEach(nodeId => items.push({ nodeId, styleId }));
+  });
+
+  if (items.length === 0) { showStatus('No nodes selected or no style chosen.', 'warn'); return; }
+
+  const btn = document.getElementById('btn-audit-apply');
+  btn.disabled = true;
+  btn.textContent = 'Applying…';
+  showStatus('Applying styles to ' + items.length + ' nodes…', '');
+  parent.postMessage({ pluginMessage: { type: 'audit-apply', items } }, '*');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
