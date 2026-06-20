@@ -5,28 +5,33 @@ figma.showUI(__html__, { width: 560, height: 680 });
 // ─── Bootstrap: scan variables on open ───────────────────────────────────────
 
 figma.ui.onmessage = async (msg) => {
-  switch (msg.type) {
-    case 'scan-variables':        return await scanVariables();
-    case 'scan-all-variables':    return await scanAllVariables();
-    case 'create-tokens':         return await createTokens(msg.fontFamily);
-    case 'validate-tokens':       return await validateTokens(msg);
-    case 'create-missing-tokens': return await createMissingTokens(msg);
-    case 'create-styles':         return await createStyles(msg);
-    case 'create-preview-frame':  return await createPreviewFrame(msg);
-    case 'audit-scan':            return await auditScan(msg);
-    case 'audit-apply':           return await auditApply(msg);
-    case 'audit-select':          return await auditSelect(msg);
-    case 'load-settings': {
-      const saved = await figma.clientStorage.getAsync('fsc_settings');
-      figma.ui.postMessage({ type: 'settings-loaded', settings: saved || {} });
-      return;
+  try {
+    switch (msg.type) {
+      case 'scan-variables':        return await scanVariables();
+      case 'scan-all-variables':    return await scanAllVariables();
+      case 'create-tokens':         return await createTokens(msg.fontFamily);
+      case 'validate-tokens':       return await validateTokens(msg);
+      case 'create-missing-tokens': return await createMissingTokens(msg);
+      case 'create-styles':         return await createStyles(msg);
+      case 'create-preview-frame':  return await createPreviewFrame(msg);
+      case 'audit-scan':            return await auditScan(msg);
+      case 'audit-apply':           return await auditApply(msg);
+      case 'audit-select':          return await auditSelect(msg);
+      case 'load-settings': {
+        const saved = await figma.clientStorage.getAsync('fsc_settings');
+        figma.ui.postMessage({ type: 'settings-loaded', settings: saved || {} });
+        return;
+      }
+      case 'save-settings': {
+        await figma.clientStorage.setAsync('fsc_settings', msg.settings);
+        figma.ui.postMessage({ type: 'settings-saved' });
+        return;
+      }
+      case 'cancel':                return figma.closePlugin();
     }
-    case 'save-settings': {
-      await figma.clientStorage.setAsync('fsc_settings', msg.settings);
-      figma.ui.postMessage({ type: 'settings-saved' });
-      return;
-    }
-    case 'cancel':                return figma.closePlugin();
+  } catch (e) {
+    // Never leave the UI hanging — surface the failure so buttons reset
+    figma.ui.postMessage({ type: 'error', text: (e && e.message) ? e.message : String(e) });
   }
 };
 
@@ -333,7 +338,7 @@ async function createStyles(msg) {
   try { await figma.loadFontAsync({ family: 'Inter', style: 'Regular' }); } catch (_) {}
 
   // ── Create styles ─────────────────────────────────────────────────────────
-  const existingStyles = figma.getLocalTextStyles();
+  const existingStyles = await figma.getLocalTextStylesAsync();
   const existingNames = new Set(existingStyles.map(s => s.name));
 
   let created = 0;
@@ -412,6 +417,9 @@ async function createPreviewFrame(msg) {
     }
     break; // only need to load each style once
   }
+
+  // Fetch local text styles once for matching against rows
+  const localTextStyles = await figma.getLocalTextStylesAsync();
 
   // Build list of rows: one per size × weight combo
   const rows = [];
@@ -505,7 +513,7 @@ async function createPreviewFrame(msg) {
       sample.x = PADDING + META_W + 160;
       sample.y = yOffset;
       // Apply matching text style if it exists
-      const matchStyle = figma.getLocalTextStyles().find(ts => ts.name === s.token + '/' + w.label);
+      const matchStyle = localTextStyles.find(ts => ts.name === s.token + '/' + w.label);
       if (matchStyle) sample.textStyleId = matchStyle.id;
       frame.appendChild(sample);
     } catch (_) {}
@@ -573,7 +581,7 @@ async function auditScan(msg) {
   }
 
   // ── Collect local text styles ──────────────────────────────────────────
-  const textStyles = figma.getLocalTextStyles();
+  const textStyles = await figma.getLocalTextStylesAsync();
   const localStyleById = {};
   for (const s of textStyles) localStyleById[s.id] = s;
 
@@ -600,32 +608,55 @@ async function auditScan(msg) {
     return '(Page level)';
   }
 
-  // Resolve fontSize + fontStyle from a potentially mixed text node
-  function getTextProps(node) {
-    const isMixed = node.fontSize === figma.mixed || node.fontName === figma.mixed;
-    if (isMixed) {
-      const segs = node.getStyledTextSegments(['fontName', 'fontSize']);
-      if (!segs.length) return null;
-      return { fontSize: segs[0].fontSize, fontStyle: segs[0].fontName.style, fontFamily: segs[0].fontName.family };
-    }
-    return { fontSize: node.fontSize, fontStyle: node.fontName.style, fontFamily: node.fontName.family };
+  // Normalise a lineHeight object ({unit, value} | {unit:'AUTO'}) → comparable string
+  function lhKey(lh) {
+    if (!lh || lh.unit === 'AUTO') return 'auto';
+    // Round PIXELS/PERCENT to 2dp so float noise doesn't split groups
+    return lh.unit + ':' + Math.round(lh.value * 100) / 100;
   }
 
-  // Auto-match by fontSize + fontStyle against local styles only
+  // Resolve fontSize + fontStyle + lineHeight from a potentially mixed text node
+  function getTextProps(node) {
+    const isMixed = node.fontSize === figma.mixed || node.fontName === figma.mixed
+      || node.lineHeight === figma.mixed;
+    if (isMixed) {
+      const segs = node.getStyledTextSegments(['fontName', 'fontSize', 'lineHeight']);
+      if (!segs.length) return null;
+      const s = segs[0];
+      return { fontSize: s.fontSize, fontStyle: s.fontName.style, fontFamily: s.fontName.family, lineHeight: lhKey(s.lineHeight) };
+    }
+    return { fontSize: node.fontSize, fontStyle: node.fontName.style, fontFamily: node.fontName.family, lineHeight: lhKey(node.lineHeight) };
+  }
+
+  // Auto-match against local styles, Figma-style: tightest match first, then
+  // progressively relax. fontFamily is the key precision gain over the old
+  // size+style-only matcher — a 16px Regular in Inter no longer matches an
+  // IBM Plex 16px/Regular style.
   function findMatch(props) {
-    return textStyles.find(s =>
+    const sameSizeStyle = s =>
       s.fontSize === props.fontSize &&
-      s.fontName.style.toLowerCase() === props.fontStyle.toLowerCase()
-    ) || null;
+      s.fontName.style.toLowerCase() === props.fontStyle.toLowerCase();
+    const sameFamily = s => s.fontName.family === props.fontFamily;
+    const sameLh     = s => lhKey(s.lineHeight) === props.lineHeight;
+
+    // 1) family + size + style + lineHeight   2) family + size + style
+    // 3) size + style + lineHeight            4) size + style (legacy fallback)
+    return textStyles.find(s => sameSizeStyle(s) && sameFamily(s) && sameLh(s))
+        || textStyles.find(s => sameSizeStyle(s) && sameFamily(s))
+        || textStyles.find(s => sameSizeStyle(s) && sameLh(s))
+        || textStyles.find(s => sameSizeStyle(s))
+        || null;
   }
 
   const items = [];
 
   for (const node of textNodes) {
-    const context = getContext(node);
-    if (context === null) continue;
-
-    const props = getTextProps(node);
+    let context, props;
+    try {
+      context = getContext(node);
+      if (context === null) continue;
+      props = getTextProps(node);
+    } catch (_) { continue; }
     if (!props) continue;
 
     const rawStyleId = node.textStyleId;
@@ -636,7 +667,7 @@ async function auditScan(msg) {
     let currentIsLibrary = false;
     if (hasStyle && !currentStyle) {
       try {
-        const s = figma.getStyleById(rawStyleId);
+        const s = await figma.getStyleByIdAsync(rawStyleId);
         if (s && s.type === 'TEXT') {
           currentStyle = { id: rawStyleId, name: s.name };
           currentIsLibrary = true;
@@ -659,6 +690,7 @@ async function auditScan(msg) {
       fontFamily:        props.fontFamily,
       fontSize:          props.fontSize,
       fontStyle:         props.fontStyle,
+      lineHeight:        props.lineHeight,
       hasStyle,
       currentStyleId:    hasStyle ? rawStyleId : null,
       currentStyleName:  currentStyle ? currentStyle.name : null,
@@ -688,7 +720,7 @@ async function auditApply(msg) {
 
   for (const { nodeId, styleId } of items) {
     try {
-      const node = figma.getNodeById(nodeId);
+      const node = await figma.getNodeByIdAsync(nodeId);
       if (!node || node.type !== 'TEXT') continue;
 
       let resolvedStyleId = styleId;
@@ -717,9 +749,8 @@ async function auditApply(msg) {
 
 async function auditSelect(msg) {
   const nodeIds = msg.nodeIds || [];
-  const nodes = nodeIds
-    .map(id => figma.getNodeById(id))
-    .filter(n => n !== null);
+  const resolved = await Promise.all(nodeIds.map(id => figma.getNodeByIdAsync(id)));
+  const nodes = resolved.filter(n => n !== null && n !== undefined);
 
   if (nodes.length === 0) return;
 

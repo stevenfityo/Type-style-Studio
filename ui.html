@@ -106,7 +106,7 @@
     <h2>Font Styles Creator</h2>
     <p class="subtitle">Tailwind CSS type scale → Figma Text Styles</p>
   </div>
-  <button onclick="toggleSettings()" title="Library settings" style="background:none;border:none;color:#555;cursor:pointer;font-size:17px;padding:2px 4px;margin-top:2px;line-height:1;transition:color .15s" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">⚙</button>
+  <button onclick="toggleSettings()" title="Library settings" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 4px;margin-top:2px;line-height:0;transition:color .15s" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 12C15.5 13.933 13.933 15.5 12 15.5C10.067 15.5 8.5 13.933 8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12Z" stroke="currentColor" stroke-width="1.5"/><path d="M20.7906 9.15201C21.5969 10.5418 22 11.2366 22 12C22 12.7634 21.5969 13.4582 20.7906 14.848L18.8669 18.1638C18.0638 19.548 17.6623 20.2402 17.0019 20.6201C16.3416 21 15.5402 21 13.9373 21H10.0627C8.45982 21 7.6584 21 6.99807 20.6201C6.33774 20.2402 5.93619 19.548 5.13311 18.1638L3.20942 14.848C2.40314 13.4582 2 12.7634 2 12C2 11.2366 2.40314 10.5418 3.20942 9.152L5.13311 5.83621C5.93619 4.45196 6.33774 3.75984 6.99807 3.37992C7.6584 3 8.45982 3 10.0627 3H13.9373C15.5402 3 16.3416 3 17.0019 3.37992C17.6623 3.75984 18.0638 4.45197 18.8669 5.83622L20.7906 9.15201Z" stroke="currentColor" stroke-width="1.5"/></svg></button>
 </div>
 
 <!-- ── Settings overlay ── -->
@@ -119,9 +119,12 @@
     <div style="flex:1;overflow-y:auto;padding:14px 16px">
 
       <div style="margin-bottom:14px">
-        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Personal Access Token</div>
-        <input type="password" id="settings-token" placeholder="figd_…" style="width:100%" />
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Personal Access Token <span style="color:#666">(опціонально)</span></div>
+        <input type="password" id="settings-token" placeholder="figd_…" style="width:100%" autocomplete="off" />
         <p class="hint" style="margin-top:4px">Figma → Profile → Settings → Account → <b>Personal access tokens</b></p>
+        <div style="margin-top:6px;background:#252525;border-radius:6px;padding:8px 10px">
+          <p class="hint" style="line-height:1.6">🔒 Токен зберігається лише локально на цьому пристрої (<code style="color:#5ab8ff">clientStorage</code>) і надсилається виключно на <code style="color:#5ab8ff">api.figma.com</code> для читання стилів бібліотеки. Потрібен <b>тільки</b> для роботи з бібліотечними стилями — локальний аудит працює без нього.</p>
+        </div>
       </div>
 
       <div style="margin-bottom:14px">
@@ -153,7 +156,7 @@
 <div class="tab-bar">
   <div class="tab-btn active" onclick="switchTab('tokens')">Tokens</div>
   <div class="tab-btn" onclick="switchTab('styles')">Styles</div>
-  <div class="tab-btn" onclick="switchTab('preview')">Preview Frame</div>
+  <div class="tab-btn" onclick="switchTab('preview')">Preview</div>
   <div class="tab-btn" onclick="switchTab('audit')">Audit</div>
 </div>
 
@@ -192,7 +195,6 @@
     </div>
     <div class="btn-row">
       <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Typography Tokens</button>
-      <button onclick="hideSetupPanel()" class="secondary">Skip</button>
     </div>
   </div>
 
@@ -235,8 +237,6 @@
       <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(true)">Select all</span>
       <span style="font-size:10px;color:#444">·</span>
       <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(false)">Deselect all</span>
-      <span style="font-size:10px;color:#444">·</span>
-      <button class="ghost" onclick="toggleAddSize()">+ Add size</button>
     </div>
     <div class="add-form" id="add-size-form">
       <div class="fields">
@@ -255,8 +255,10 @@
   <div class="section">
     <h3>Weights</h3>
     <div class="chip-grid" id="weight-chips"></div>
-    <div style="margin-top:8px">
-      <button class="ghost" onclick="toggleAddWeight()">+ Add weight</button>
+    <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllWeights(true)">Select all</span>
+      <span style="font-size:10px;color:#444">·</span>
+      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllWeights(false)">Deselect all</span>
     </div>
     <div class="add-form" id="add-weight-form">
       <div class="fields">
@@ -274,7 +276,6 @@
   <p class="preview-count" id="preview-count">— styles will be created</p>
   <div class="btn-row">
     <button onclick="createStyles()" id="btn-create" class="success">Create Text Styles</button>
-    <button class="secondary" onclick="parent.postMessage({pluginMessage:{type:'cancel'}},'*')">Close</button>
   </div>
 
 </div>
@@ -334,7 +335,6 @@
 
   <div class="btn-row">
     <button onclick="createPreviewFrame()" id="btn-preview" class="success">Create Frame in Figma</button>
-    <button class="secondary" onclick="parent.postMessage({pluginMessage:{type:'cancel'}},'*')">Close</button>
   </div>
 
 </div>
@@ -495,6 +495,43 @@ function weightToStyleStr(weight, italic) {
   return base === 'Regular' ? 'Italic' : base + ' Italic';
 }
 
+// Derive { fontSize, fontStyle } from a style name following the
+// "{token}/{weight}" convention (e.g. "Text sm/Regular", "text-2xl/Bold").
+// Used as a fallback when the REST /nodes call doesn't return type props.
+const TOKEN_SIZE_PX = {
+  xs: 12, sm: 14, md: 16, base: 16, lg: 18, xl: 20,
+  '2xl': 24, '3xl': 30, '4xl': 36, '5xl': 48, '6xl': 60, '7xl': 72,
+};
+function deriveFromStyleName(name) {
+  if (!name) return {};
+  const slashIdx = name.lastIndexOf('/');
+  const namePart  = (slashIdx >= 0 ? name.slice(0, slashIdx) : name).trim();
+  const stylePart = slashIdx >= 0 ? name.slice(slashIdx + 1).trim() : '';
+
+  let fontSize = null;
+  // 1) rem value in parentheses, e.g. "text-md (1)" → 16px, "text-xl (1.25)" → 20px
+  const remMatch = namePart.match(/\(\s*([\d.]+)\s*(?:rem)?\s*\)/i);
+  if (remMatch) {
+    const rem = parseFloat(remMatch[1]);
+    if (!isNaN(rem)) fontSize = Math.round(rem * 16);
+  }
+  // 2) explicit px in the name, e.g. "Body 16px"
+  if (fontSize == null) {
+    const pxMatch = namePart.match(/(\d+(?:\.\d+)?)\s*px/i);
+    if (pxMatch) fontSize = Math.round(parseFloat(pxMatch[1]));
+  }
+  // 3) known size token anywhere in the name, e.g. "text-md", "md", "2xl"
+  if (fontSize == null) {
+    const segs = namePart.split(/[\s\-_/()]+/).filter(Boolean);
+    for (const seg of segs) {
+      const px = TOKEN_SIZE_PX[seg.toLowerCase()];
+      if (px) { fontSize = px; break; }
+    }
+  }
+
+  return { fontSize, fontStyle: stylePart || null };
+}
+
 async function fetchLibraryStyles() {
   const { token, fileKey, libName } = _settings;
   if (!token || !fileKey) return [];
@@ -541,14 +578,17 @@ async function fetchLibraryStyles() {
 
   return textStyles.map(s => {
     const props = nodeProps[s.node_id] || {}; // s.node_id already in hyphen format
+    // Fall back to deriving size/style from the style name when the REST
+    // /nodes call didn't return type properties for this style.
+    const fromName = deriveFromStyleName(s.name);
     return {
       id:          'lib:' + s.key,
       name:        s.name,
       libraryName: groupName,
       isLibrary:   true,
-      fontSize:    props.fontSize   || null,
-      fontFamily:  props.fontFamily || null,
-      fontStyle:   props.fontStyle  || null,
+      fontSize:    (props.fontSize   != null ? props.fontSize  : fromName.fontSize),
+      fontFamily:  props.fontFamily  || null,
+      fontStyle:   props.fontStyle   || fromName.fontStyle || null,
     };
   });
 }
@@ -694,10 +734,20 @@ function hideSetupPanel() {
 // CHIPS (shared by Tab 2 + Tab 3)
 // ═══════════════════════════════════════════════════════════════════════
 
+function makeAddChip(label, onclick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'chip ghost';
+  btn.textContent = label;
+  btn.onclick = onclick;
+  return btn;
+}
+
 function rebuildSizeChips() {
   const wrap = document.getElementById('size-chips');
   wrap.innerHTML = '';
   allSizes().forEach(s => wrap.appendChild(makeChip(s.token, true, s._custom)));
+  wrap.appendChild(makeAddChip('+ Add size', toggleAddSize));
   updatePreview();
 }
 
@@ -705,6 +755,7 @@ function rebuildWeightChips() {
   const wrap = document.getElementById('weight-chips');
   wrap.innerHTML = '';
   allWeights().forEach(w => wrap.appendChild(makeChip(w.label, true, w._custom)));
+  wrap.appendChild(makeAddChip('+ Add weight', toggleAddWeight));
   updatePreview();
 }
 
@@ -738,6 +789,16 @@ function checkedValues(id) {
 function selectAllSizes(on) {
   document.querySelectorAll('#size-chips .chip').forEach(chip => {
     const cb = chip.querySelector('input');
+    if (!cb) return; // skip the "+ Add size" chip (no checkbox)
+    cb.checked = on; chip.classList.toggle('on', on);
+  });
+  updatePreview(); renderPreviewTable();
+}
+
+function selectAllWeights(on) {
+  document.querySelectorAll('#weight-chips .chip').forEach(chip => {
+    const cb = chip.querySelector('input');
+    if (!cb) return; // skip the "+ Add weight" chip (no checkbox)
     cb.checked = on; chip.classList.toggle('on', on);
   });
   updatePreview(); renderPreviewTable();
@@ -956,7 +1017,8 @@ function addMissingTokens() {
 function showStatus(text, cls) {
   const el = document.getElementById('status-global');
   el.textContent = text;
-  el.className = 'status visible ' + (cls || '');
+  // Empty text → hide the bar entirely (don't leave an empty grey strip)
+  el.className = 'status ' + (text ? 'visible ' : '') + (cls || '');
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1058,6 +1120,9 @@ onmessage = (e) => {
       const b = document.getElementById(id);
       if (b) { b.disabled = false; b.textContent = b.textContent.replace('…','').trim(); }
     });
+    // Re-enable the audit Scan button so the user can pick another frame and retry
+    const auditBtn = document.getElementById('btn-audit-scan');
+    if (auditBtn) { auditBtn.disabled = false; auditBtn.textContent = 'Scan'; }
   }
 };
 
@@ -1094,7 +1159,7 @@ async function auditScan() {
   parent.postMessage({ pluginMessage: { type: 'audit-scan', scope } }, '*');
 }
 
-function buildStyleSelect(pgIdx, selectedId) {
+function buildStyleSelect(pgIdx, selectedId, selectedName) {
   const sortByName = (a, b) => a.name.localeCompare(b.name);
   const local   = _auditLocalStyles.filter(s => !s.isLibrary).sort(sortByName);
   const library = _auditLocalStyles.filter(s => s.isLibrary);
@@ -1109,6 +1174,16 @@ function buildStyleSelect(pgIdx, selectedId) {
   for (const g of Object.keys(libGroups)) libGroups[g].sort(sortByName);
 
   let opts = '<option value="">— no style —</option>';
+
+  // If the matched style id isn't in the local/library lists (e.g. a library
+  // style already applied to the node, whose real id differs from "lib:<key>"),
+  // inject it so the dropdown reflects the match instead of falling back to
+  // "— no style —".
+  const idInLists = selectedId && _auditLocalStyles.some(s => s.id === selectedId);
+  if (selectedId && !idInLists) {
+    opts += '<option value="' + escHtml(selectedId) + '" selected>'
+      + escHtml(selectedName || '(current style)') + '</option>';
+  }
 
   if (local.length > 0) {
     opts += '<optgroup label="Local styles">';
@@ -1151,13 +1226,15 @@ function renderAuditResults(data, total, matched, localStyles) {
     // Split styled vs unstyled nodes into separate groups so each can be
     // selected and applied independently.
     const styled = !!item.hasStyle;
-    const key = item.fontFamily + '|' + item.fontSize + '|' + item.fontStyle + '|' + (styled ? 'styled' : 'unstyled');
+    const lh = item.lineHeight || 'auto';
+    const key = item.fontFamily + '|' + item.fontSize + '|' + item.fontStyle + '|' + lh + '|' + (styled ? 'styled' : 'unstyled');
     if (!paramMap[key]) {
       paramMap[key] = {
         key,
         fontFamily:       item.fontFamily,
         fontSize:         item.fontSize,
         fontStyle:        item.fontStyle,
+        lineHeight:       lh,
         hasStyle:         styled,
         matchedStyleId:   item.matchedStyleId,
         matchedStyleName: item.matchedStyleName,
@@ -1184,10 +1261,13 @@ function renderAuditResults(data, total, matched, localStyles) {
   const libStylesWithProps = (localStyles || []).filter(s => s.isLibrary && s.fontSize != null && s.fontStyle);
   paramGroups.forEach(pg => {
     if (!pg.matchedStyleId) {
-      const match = libStylesWithProps.find(s =>
+      // Mirror code.js findMatch: family-aware first, then relax to size+style.
+      const sameSizeStyle = s =>
         s.fontSize === pg.fontSize &&
-        s.fontStyle.toLowerCase() === pg.fontStyle.toLowerCase()
-      );
+        s.fontStyle.toLowerCase() === pg.fontStyle.toLowerCase();
+      const match =
+        libStylesWithProps.find(s => sameSizeStyle(s) && s.fontFamily === pg.fontFamily)
+        || libStylesWithProps.find(s => sameSizeStyle(s));
       if (match) {
         pg.matchedStyleId   = match.id;
         pg.matchedStyleName = match.name;
@@ -1196,9 +1276,9 @@ function renderAuditResults(data, total, matched, localStyles) {
   });
 
   let html = '';
-  html += '<div class="audit-col-hdr" style="grid-template-columns:1fr 56px 150px 50px 70px 28px">'
-    + '<span>Font params</span><span>Count</span><span>Apply style</span><span>Ctx</span><span></span>'
+  html += '<div class="audit-col-hdr" style="grid-template-columns:28px 1fr 56px 150px 50px 70px">'
     + '<span title="Select / deselect all"><input type="checkbox" id="audit-toggle-all" checked onchange="auditToggleAll(this.checked)" style="accent-color:#0d99ff;width:14px;height:14px;cursor:pointer"></span>'
+    + '<span>Font params</span><span>Count</span><span>Apply style</span><span>Ctx</span><span></span>'
     + '</div>';
 
   paramGroups.forEach((pg, pgIdx) => {
@@ -1210,7 +1290,10 @@ function renderAuditResults(data, total, matched, localStyles) {
       ? '<span class="ctx-main" title="Main Component">🧩</span>'
       : '<span class="ctx-plain" title="Standalone">📄</span>').join(' ');
 
-    const paramsStr   = pg.fontFamily + ' ' + pg.fontSize + 'px ' + pg.fontStyle;
+    const lhStr       = (!pg.lineHeight || pg.lineHeight === 'auto')
+      ? 'auto'
+      : (pg.lineHeight.indexOf('PERCENT:') === 0 ? pg.lineHeight.slice(8) + '%' : pg.lineHeight.slice(7) + 'px');
+    const paramsStr   = pg.fontFamily + ' ' + pg.fontSize + 'px / ' + lhStr + ' ' + pg.fontStyle;
     const framesList  = Array.from(pg.frameNames).slice(0, 3).map(escHtml).join(', ')
                       + (pg.frameNames.size > 3 ? ' +' + (pg.frameNames.size - 3) + ' more' : '');
     const framesTitle = Array.from(pg.frameNames).map(escHtml).join('\n');
@@ -1228,10 +1311,11 @@ function renderAuditResults(data, total, matched, localStyles) {
       countHtml = '<span style="background:#3a1a1a;border-radius:4px;padding:1px 6px;font-size:10px;color:#ff8080">○ ×' + pg.unstyledCount + '</span>';
     }
 
-    const styleSelect = buildStyleSelect(pgIdx, pg.matchedStyleId || '');
+    const styleSelect = buildStyleSelect(pgIdx, pg.matchedStyleId || '', pg.matchedStyleName);
     const selBtn = '<button class="audit-sel-btn" onclick="auditSelectNodes(' + pgIdx + ')" title="Select in Figma">⌖ Select</button>';
 
-    html += '<div class="audit-row' + (hasMatch ? '' : ' no-match') + '" style="grid-template-columns:1fr 56px 150px 50px 70px 28px;align-items:center">'
+    html += '<div class="audit-row' + (hasMatch ? '' : ' no-match') + '" style="grid-template-columns:28px 1fr 56px 150px 50px 70px;align-items:center">'
+      + '<div class="audit-cb"><input type="checkbox" ' + (hasMatch ? 'checked' : '') + ' data-pg="' + pgIdx + '"></div>'
       + '<div style="font-size:11px;min-width:0">'
         + '<div class="audit-current" style="color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escHtml(paramsStr) + '">' + escHtml(paramsStr) + '</div>'
         + (pg.frameNames.size > 0 ? '<div style="font-size:9px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px" title="' + framesTitle + '">' + framesList + '</div>' : '')
@@ -1240,7 +1324,6 @@ function renderAuditResults(data, total, matched, localStyles) {
       + '<div>' + styleSelect + '</div>'
       + '<div class="audit-ctx">' + ctxHtml + '</div>'
       + '<div>' + selBtn + '</div>'
-      + '<div class="audit-cb"><input type="checkbox" ' + (hasMatch ? 'checked' : '') + ' data-pg="' + pgIdx + '"></div>'
       + '</div>';
   });
 
@@ -1250,11 +1333,26 @@ function renderAuditResults(data, total, matched, localStyles) {
   const noMatch = _auditParamGroups.filter(pg => !pg.matchedStyleId).length;
   const matchedPgCount = _auditParamGroups.filter(pg => pg.matchedStyleId).length;
 
+  const localCount = (localStyles || []).filter(s => !s.isLibrary).length;
+  const libCount   = (localStyles || []).filter(s => s.isLibrary).length;
+  const libWithSize = (localStyles || []).filter(s => s.isLibrary && s.fontSize != null && s.fontStyle).length;
+
   const sumEl = document.getElementById('audit-summary');
   document.getElementById('audit-summary-text').innerHTML =
     'Found <b style="color:#e0e0e0">' + items.length + '</b> nodes · '
     + '<b style="color:#5ab8ff">' + matchedPgCount + '</b> group' + (matchedPgCount !== 1 ? 's' : '') + ' matched · '
-    + '<b style="color:#555">' + noMatch + '</b> no match';
+    + '<b style="color:#555">' + noMatch + '</b> no match'
+    + '<div style="font-size:9px;color:#666;margin-top:3px">Matching against '
+      + '<b style="color:#888">' + localCount + '</b> local + '
+      + '<b style="color:#888">' + libCount + '</b> library style' + (libCount !== 1 ? 's' : '')
+      + (libCount > 0 ? ' (<b style="color:#888">' + libWithSize + '</b> with size info)' : '')
+      + (libCount === 0 ? ' · <span style="color:#fcc419">no library loaded — set Token + File Key in ⚙ Settings to match against a library</span>' : '')
+      + '</div>'
+      + (libCount > 0 && libWithSize === 0
+          ? '<div style="font-size:9px;color:#fcc419;margin-top:2px">Sample library style names: '
+            + (localStyles || []).filter(s => s.isLibrary).slice(0, 5).map(s => escHtml(s.name)).join(' · ')
+            + '</div>'
+          : '');
   sumEl.style.display = 'block';
   document.getElementById('audit-apply-row').style.display = paramGroups.length > 0 ? 'flex' : 'none';
   // Re-scan lives in the apply row now, so hide the standalone Scan button.

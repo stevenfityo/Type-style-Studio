@@ -5,5 +5,9 @@
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["figma"],
-  "permissions": ["currentuser"]
+  "permissions": ["currentuser"],
+  "networkAccess": {
+    "allowedDomains": ["https://api.figma.com"],
+    "reasoning": "Reads shared library text styles via the Figma REST API so they can be listed and applied during the typography audit. The personal access token is stored locally (clientStorage) and is only sent to api.figma.com."
+  }
 }
