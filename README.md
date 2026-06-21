@@ -2,6 +2,9 @@
 
 A Figma plugin that generates Text Styles from the Tailwind CSS type scale and binds them to local Variables (design tokens). Includes a typography audit that finds unstyled text and matches it to existing styles.
 
+<img width="1768" height="759" alt="PlugInScreens" src="https://github.com/user-attachments/assets/c92695fb-8fd8-408d-8e2f-11eda22506d5" />
+
+
 ## Features
 
 - **Tokens** — create a `Typography` variable collection (font family, weight, size, line height) from a Tailwind-based scale, or add only the missing tokens to an existing collection.
