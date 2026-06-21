@@ -3,150 +3,302 @@
 <head>
 <meta charset="utf-8">
 <style>
+  /* ══ shadcn/ui design tokens ══ */
+  /* Default = dark theme (shadcn .dark) */
+  :root {
+    --radius: 0.625rem;
+    /* lucide "Check" icon, used as a mask for the checkbox indicator */
+    --check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 16%);
+    --ring: oklch(0.556 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.985 0 0);
+    /* functional feedback (kept semantic) */
+    --success: oklch(0.696 0.17 162.48);
+    --success-foreground: oklch(0.985 0 0);
+    --success-fg: oklch(0.8 0.13 162);
+    --success-bg: oklch(0.27 0.06 162);
+    --warn: oklch(0.769 0.188 70.08);
+    --warn-fg: oklch(0.85 0.15 85);
+    --destructive-fg: oklch(0.704 0.13 22);
+    --destructive-bg: oklch(0.27 0.07 25);
+  }
+  /* Light theme (shadcn :root) */
+  body.theme-light {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --success: oklch(0.6 0.17 162);
+    --success-foreground: oklch(0.985 0 0);
+    --success-fg: oklch(0.52 0.16 162);
+    --success-bg: oklch(0.95 0.05 162);
+    --warn: oklch(0.75 0.16 70);
+    --warn-fg: oklch(0.52 0.13 70);
+    --destructive-fg: oklch(0.577 0.21 27);
+    --destructive-bg: oklch(0.96 0.04 25);
+  }
+  /* Legacy palette tokens remapped onto shadcn semantics (theme-aware).
+     Declared for BOTH selectors so nested var() resolves per-theme:
+     on :root → dark semantics, on body.theme-light → light semantics. */
+  :root, body.theme-light {
+    --c-fff: var(--foreground);        --c-e0e0e0: var(--foreground);
+    --c-ddd: var(--foreground);        --c-ccc: var(--foreground);
+    --c-bbb: var(--muted-foreground);  --c-aaa: var(--muted-foreground);
+    --c-888: var(--muted-foreground);  --c-777: var(--muted-foreground);
+    --c-666: var(--muted-foreground);  --c-555: var(--muted-foreground);
+    --c-1e1e1e: var(--background);     --c-222: var(--card);
+    --c-242424: var(--muted);          --c-252525: var(--muted);
+    --c-2a2a2a: var(--card);           --c-2e2e2e: var(--muted);
+    --c-333: var(--muted);             --c-3a3a3a: var(--border);
+    --c-444: var(--input);             --c-262626: var(--border);
+    --c-0d99ff: var(--primary);        --c-0880d8: var(--primary);
+    --c-5ab8ff: var(--foreground);     --c-8ab4f8: var(--muted-foreground);
+    --c-2f9e44: var(--success);        --c-277537: var(--success);
+    --c-40c057: var(--success);        --c-69db7c: var(--success-fg);
+    --c-a9e34b: var(--success-fg);
+    --c-ff6b6b: var(--destructive-fg); --c-ff8080: var(--destructive-fg);
+    --c-e84040: var(--destructive);
+    --c-fcc419: var(--warn-fg);        --c-f59f00: var(--warn);
+    --c-7db8e0: var(--muted-foreground);
+    --c-1a3a5c: var(--accent);         --c-1a3a1a: var(--success-bg);
+    --c-3a1a1a: var(--destructive-bg); --c-1a2a3a: var(--muted);
+    --c-2d4a6a: var(--border);         --c-3a2a2a: var(--destructive-bg);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Inter, sans-serif; font-size: 12px; background: #1e1e1e; color: #e0e0e0; }
-  h2 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
-  .subtitle { font-size: 11px; color: #555; margin-bottom: 0; }
+  body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12px; background: var(--background); color: var(--foreground); padding-bottom: 60px; }
+  h2 { font-size: 14px; font-weight: 600; color: var(--foreground); margin-bottom: 2px; letter-spacing: -0.01em; }
+  .subtitle { font-size: 11px; color: var(--muted-foreground); margin-bottom: 0; }
 
   /* ── Tabs ── */
-  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid #2e2e2e; padding: 0 16px; background: #1e1e1e; }
-  .tab-btn { padding: 10px 16px; font-size: 12px; font-weight: 500; color: #666; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; user-select: none; transition: color .15s; }
-  .tab-btn:hover { color: #aaa; }
-  .tab-btn.active { color: #fff; border-bottom-color: #0d99ff; }
+  .tab-bar { display: flex; gap: 0; align-items: center; border-bottom: 1px solid var(--border); padding: 0 12px 0 16px; background: var(--background); position: sticky; top: 0; z-index: 40; }
+  .tab-settings-btn { margin-left: auto; background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; line-height: 0; border-radius: calc(var(--radius) - 4px); transition: color .15s, background .15s; }
+  .tab-settings-btn:hover { color: var(--foreground); background: var(--muted); opacity: 1; }
+  .tab-settings-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+  .tab-btn { padding: 10px 16px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; user-select: none; transition: color .15s; }
+  .tab-btn:hover { color: var(--foreground); }
+  .tab-btn.active { color: var(--foreground); border-bottom-color: var(--foreground); }
 
   .tab-pane { display: none; padding: 14px 16px; }
   .tab-pane.active { display: block; }
+  details#preview-section[open] .preview-caret { transform: rotate(90deg); }
+  details#preview-section summary::-webkit-details-marker { display: none; }
 
   /* ── Shared header ── */
   .plugin-header { padding: 14px 16px 0; }
 
-  /* ── Sections ── */
-  .section { background: #2a2a2a; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-  .section h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #555; margin-bottom: 10px; letter-spacing: 0.5px; }
+  /* ── Sections (cards) ── */
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+  .section h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 10px; letter-spacing: 0.5px; }
 
-  /* ── Buttons ── */
-  button { background: #0d99ff; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 12px; font-weight: 500; transition: background 0.15s; }
-  button:hover { background: #0880d8; }
-  button.secondary { background: #3a3a3a; color: #ccc; }
-  button.secondary:hover { background: #444; }
-  button.success { background: #2f9e44; }
-  button.success:hover { background: #277537; }
-  button.ghost { background: none; color: #555; border: 1px dashed #3a3a3a; font-size: 11px; padding: 4px 10px; }
-  button.ghost:hover { color: #aaa; border-color: #555; background: none; }
-  button.icon-btn { background: none; color: #555; border: none; padding: 2px 5px; font-size: 13px; line-height: 1; cursor: pointer; border-radius: 3px; }
-  button.icon-btn:hover { color: #ff6b6b; background: #3a2a2a; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  /* ── Inputs ── */
-  input[type=text], input[type=number], select {
-    background: #333; border: 1px solid #444; border-radius: 5px;
-    color: #e0e0e0; padding: 6px 10px; font-size: 12px; width: 100%;
+  /* ── Buttons (shadcn) ── */
+  button {
+    background: var(--primary); color: var(--primary-foreground); border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 4px); padding: 8px 16px; cursor: pointer;
+    font-size: 12px; font-weight: 500; font-family: inherit; line-height: 1;
+    transition: background .15s, opacity .15s, box-shadow .15s, border-color .15s;
   }
-  input[type=text]:focus, input[type=number]:focus, select:focus { outline: none; border-color: #0d99ff; }
+  button:hover { opacity: 0.9; }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+  button.secondary { background: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); }
+  button.secondary:hover { background: var(--muted); opacity: 1; }
+  button.success { background: var(--success); color: var(--success-foreground); }
+  button.sm { padding: 5px 12px; font-size: 11px; }
+  button.ghost { background: none; color: var(--muted-foreground); border: 1px dashed var(--border); font-size: 11px; padding: 4px 10px; }
+  button.ghost:hover { color: var(--foreground); border-color: var(--ring); background: var(--muted); opacity: 1; }
+  /* link-variant button (shadcn) */
+  button.link, .link-btn { background: none; border: none; padding: 0; color: var(--foreground); font-size: 10px; font-weight: 500; font-family: inherit; cursor: pointer; text-underline-offset: 4px; transition: color .1s; }
+  button.link:hover, .link-btn:hover { background: none; opacity: 1; text-decoration: underline; }
+  button.link:focus-visible, .link-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); border-radius: 2px; }
+  button.icon-btn { background: none; color: var(--muted-foreground); border: none; padding: 2px 5px; font-size: 13px; line-height: 1; cursor: pointer; border-radius: 4px; }
+  button.icon-btn:hover { color: var(--destructive); background: var(--destructive-bg); opacity: 1; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Inputs (single source for all text-like fields) ── */
+  input[type=text], input[type=number], input[type=password], select, textarea {
+    background: var(--background); border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px);
+    color: var(--foreground); padding: 6px 10px; font-size: 12px; width: 100%;
+    font-family: inherit; transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, input[type=password]:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent);
+  }
   input[type=number] { -moz-appearance: textfield; }
   input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  select option { background: #333; }
+  input::placeholder, textarea::placeholder { color: var(--muted-foreground); }
+  select option { background: var(--card); color: var(--foreground); }
+
+  /* ── Form field (label + control) ── */
+  .field-label { font-size: 11px; color: var(--muted-foreground); margin-bottom: 4px; }
+
+  /* ── Radio group (shadcn) ── */
+  .radio-group { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--foreground); }
+  .radio-item input[type=radio], .choice-card input[type=radio] {
+    appearance: none; -webkit-appearance: none; margin: 0; flex-shrink: 0;
+    width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 9999px;
+    background: var(--background); cursor: pointer; position: relative;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .radio-item input[type=radio]:hover, .choice-card input[type=radio]:hover { border-color: var(--ring); }
+  .radio-item input[type=radio]:checked, .choice-card input[type=radio]:checked { border-color: var(--primary); }
+  .radio-item input[type=radio]:checked::after, .choice-card input[type=radio]:checked::after {
+    content: ""; position: absolute; inset: 0; margin: auto;
+    width: 8px; height: 8px; border-radius: 9999px; background: var(--primary);
+  }
+  .radio-item input[type=radio]:focus-visible, .choice-card input[type=radio]:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
+
+  /* ── Choice cards (shadcn radio choice-card) ── */
+  .choice-cards { display: flex; gap: 8px; }
+  .choice-card { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); background: transparent; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+  .choice-card:hover { background: var(--muted); }
+  .choice-card:has(input[type=radio]:checked) { border-color: var(--primary); background: var(--accent); }
+  .choice-card:has(input[type=radio]:focus-visible) { box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
+  .choice-card-head { display: flex; align-items: center; gap: 8px; }
+  .choice-card-title { font-size: 12px; font-weight: 500; color: var(--foreground); }
+  .choice-card-desc { font-size: 10px; color: var(--muted-foreground); line-height: 1.4; }
 
   .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-  .row label { width: 80px; color: #aaa; flex-shrink: 0; font-size: 11px; }
+  .row label { width: 80px; color: var(--muted-foreground); flex-shrink: 0; font-size: 11px; }
 
   /* ── Status ── */
-  .status { padding: 8px 12px; background: #2e2e2e; border-radius: 6px; font-size: 11px; color: #aaa; margin-bottom: 10px; display: none; border-left: 3px solid #444; line-height: 1.5; }
+  .status { padding: 8px 12px; background: var(--card); border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px); font-size: 11px; color: var(--muted-foreground); margin-bottom: 10px; display: none; border-left: 3px solid var(--border); line-height: 1.5; }
   .status.visible { display: block; }
-  .status.error   { color: #ff6b6b; border-left-color: #e84040; }
-  .status.success { color: #69db7c; border-left-color: #40c057; }
-  .status.warn    { color: #fcc419; border-left-color: #f59f00; }
+  .status.error   { color: var(--destructive-fg); border-left-color: var(--destructive); }
+  .status.success { color: var(--success-fg); border-left-color: var(--success); }
+  .status.warn    { color: var(--warn-fg); border-left-color: var(--warn); }
 
-  /* ── Chips ── */
+  /* ── Toggle group (shadcn Toggle, outline variant) ── */
   .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 5px; border: 1px solid #3a3a3a; background: #2e2e2e; font-size: 11px; color: #bbb; user-select: none; transition: background 0.1s, border-color 0.1s; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: calc(var(--radius) - 4px); border: 1px solid var(--border); background: transparent; font-size: 11px; font-weight: 500; color: var(--muted-foreground); user-select: none; transition: background 0.1s, border-color 0.1s, color 0.1s; }
   .chip.selectable { cursor: pointer; }
-  .chip.selectable:hover { border-color: #555; }
-  .chip.on { background: #1a3a5c; border-color: #0d99ff; color: #5ab8ff; }
+  .chip.selectable:hover { background: var(--muted); color: var(--foreground); }
+  .chip.on { background: var(--accent); color: var(--accent-foreground); border-color: var(--border); }
   .chip.custom { border-style: dashed; }
   .chip input[type=checkbox] { display: none; }
 
   /* ── Add forms ── */
-  .add-form { display: none; background: #222; border: 1px solid #3a3a3a; border-radius: 6px; padding: 10px; margin-top: 8px; }
+  .add-form { display: none; background: var(--muted); border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); padding: 10px; margin-top: 8px; }
   .add-form.open { display: block; }
   .add-form .fields { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
   .add-form .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
-  .add-form .field span { font-size: 10px; color: #666; }
+  .add-form .field span { font-size: 10px; color: var(--muted-foreground); }
   .add-form .actions { display: flex; gap: 6px; margin-top: 8px; }
 
-  /* ── Tokens table (Tab 1) ── */
-  .tok-table { width: 100%; border-collapse: collapse; }
-  .tok-table th { text-align: left; font-size: 10px; color: #555; font-weight: 600; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid #333; letter-spacing: .4px; }
-  .tok-table td { padding: 5px 8px; border-bottom: 1px solid #262626; font-size: 11px; }
-  .tok-table td:first-child { font-family: monospace; font-size: 10px; color: #8ab4f8; }
-  .tok-table .val { color: #aaa; }
-  .tok-table .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-  .tok-table .badge.ok   { background: #1a3a1a; color: #69db7c; }
-  .tok-table .badge.miss { background: #3a1a1a; color: #ff6b6b; }
-  .group-hdr td { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .5px; padding: 10px 8px 4px; background: #242424; }
+  /* ── Data tables (shadcn) ── */
+  .tok-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .tok-table th { height: 32px; text-align: left; vertical-align: middle; white-space: nowrap; font-size: 11px; color: var(--muted-foreground); font-weight: 500; padding: 0 8px; border-bottom: 1px solid var(--border); }
+  .tok-table td { padding: 7px 8px; vertical-align: middle; border-bottom: 1px solid var(--border); }
+  .tok-table tbody tr { transition: background .1s; }
+  .tok-table tbody tr:hover { background: color-mix(in oklab, var(--muted) 50%, transparent); }
+  .tok-table td:first-child { font-family: ui-monospace, monospace; font-size: 10px; color: var(--foreground); }
+  .tok-table .val { color: var(--muted-foreground); }
+  .tok-table .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 600; }
+  .tok-table .badge.ok   { background: var(--success-bg); color: var(--success-fg); }
+  .tok-table .badge.miss { background: var(--destructive-bg); color: var(--destructive-fg); }
+  .group-hdr td { font-size: 10px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .5px; padding: 10px 8px 4px; background: var(--muted); }
+  .group-hdr:hover td { background: var(--muted); }
 
   /* ── misc ── */
-  .sep { height: 1px; background: #333; margin: 10px 0; }
-  .hint { font-size: 10px; color: #555; margin-top: 6px; line-height: 1.5; }
-  .hint b { color: #777; }
+  .sep { height: 1px; background: var(--border); margin: 10px 0; }
+  .hint { font-size: 10px; color: var(--muted-foreground); margin-top: 6px; line-height: 1.5; }
+  .hint b { color: var(--foreground); }
   .btn-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
-  .preview-count { font-size: 11px; color: #555; margin-top: 8px; }
-  .preview-count b { color: #0d99ff; }
-  .info-banner { display: flex; align-items: flex-start; gap: 8px; background: #1a2a3a; border: 1px solid #2d4a6a; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; font-size: 11px; color: #7db8e0; line-height: 1.5; }
-  .token-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-  .token-table th { text-align: left; font-size: 10px; color: #555; font-weight: 600; text-transform: uppercase; padding: 4px 6px; border-bottom: 1px solid #333; }
-  .token-table td { padding: 3px 6px; font-size: 11px; color: #bbb; border-bottom: 1px solid #262626; }
-  .token-table td:first-child { color: #5ab8ff; font-family: monospace; font-size: 10px; }
+  .preview-count { font-size: 11px; color: var(--muted-foreground); }
+  .preview-count b { color: var(--foreground); }
+
+  /* ── Fixed footer ── */
+  #plugin-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: var(--background); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; min-height: 52px; }
+  .footer-section { display: none; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+  .footer-section.active { display: flex; }
+  .footer-left { font-size: 11px; color: var(--muted-foreground); flex: 1; min-width: 0; }
+  .footer-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .tab-pane { padding-bottom: 16px; }
+  .info-banner { display: flex; align-items: flex-start; gap: 8px; background: var(--muted); border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); padding: 10px 12px; margin-bottom: 10px; font-size: 11px; color: var(--muted-foreground); line-height: 1.5; }
+  .token-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+  .token-table th { height: 30px; text-align: left; vertical-align: middle; white-space: nowrap; font-size: 11px; color: var(--muted-foreground); font-weight: 500; padding: 0 6px; border-bottom: 1px solid var(--border); }
+  .token-table td { padding: 6px 6px; vertical-align: middle; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
+  .token-table tbody tr td { transition: background .1s; }
+  .token-table tbody tr:hover td { background: color-mix(in oklab, var(--muted) 50%, transparent); }
+  .token-table td:first-child { color: var(--foreground); font-family: ui-monospace, monospace; font-size: 10px; }
 </style>
 </head>
 <body>
 
-<div class="plugin-header" style="display:flex;justify-content:space-between;align-items:flex-start">
-  <div>
-    <h2>Font Styles Creator</h2>
-    <p class="subtitle">Tailwind CSS type scale → Figma Text Styles</p>
-  </div>
-  <button onclick="toggleSettings()" title="Library settings" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 4px;margin-top:2px;line-height:0;transition:color .15s" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 12C15.5 13.933 13.933 15.5 12 15.5C10.067 15.5 8.5 13.933 8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12Z" stroke="currentColor" stroke-width="1.5"/><path d="M20.7906 9.15201C21.5969 10.5418 22 11.2366 22 12C22 12.7634 21.5969 13.4582 20.7906 14.848L18.8669 18.1638C18.0638 19.548 17.6623 20.2402 17.0019 20.6201C16.3416 21 15.5402 21 13.9373 21H10.0627C8.45982 21 7.6584 21 6.99807 20.6201C6.33774 20.2402 5.93619 19.548 5.13311 18.1638L3.20942 14.848C2.40314 13.4582 2 12.7634 2 12C2 11.2366 2.40314 10.5418 3.20942 9.152L5.13311 5.83621C5.93619 4.45196 6.33774 3.75984 6.99807 3.37992C7.6584 3 8.45982 3 10.0627 3H13.9373C15.5402 3 16.3416 3 17.0019 3.37992C17.6623 3.75984 18.0638 4.45197 18.8669 5.83622L20.7906 9.15201Z" stroke="currentColor" stroke-width="1.5"/></svg></button>
-</div>
 
 <!-- ── Settings overlay ── -->
 <div id="settings-overlay" onclick="if(event.target===this)toggleSettings()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100">
-  <div style="position:absolute;top:0;right:0;width:300px;height:100%;background:#1e1e1e;border-left:1px solid #2e2e2e;display:flex;flex-direction:column">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #2e2e2e">
-      <span style="font-size:12px;font-weight:600;color:#fff">Library Settings</span>
-      <button onclick="toggleSettings()" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1;padding:0" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">×</button>
+  <div style="position:absolute;top:0;right:0;width:80%;height:100%;background:var(--background);border-left:1px solid var(--border);display:flex;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,.35)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--c-2e2e2e)">
+      <span style="font-size:12px;font-weight:600;color:var(--c-fff)">Library Settings</span>
+      <button onclick="toggleSettings()" style="background:none;border:none;color:var(--c-555);cursor:pointer;font-size:18px;line-height:1;padding:0" onmouseover="this.style.color='var(--c-aaa)'" onmouseout="this.style.color='var(--c-555)'">×</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:14px 16px">
 
       <div style="margin-bottom:14px">
-        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Personal Access Token <span style="color:#666">(опціонально)</span></div>
-        <input type="password" id="settings-token" placeholder="figd_…" style="width:100%" autocomplete="off" />
-        <p class="hint" style="margin-top:4px">Figma → Profile → Settings → Account → <b>Personal access tokens</b></p>
-        <div style="margin-top:6px;background:#252525;border-radius:6px;padding:8px 10px">
-          <p class="hint" style="line-height:1.6">🔒 Токен зберігається лише локально на цьому пристрої (<code style="color:#5ab8ff">clientStorage</code>) і надсилається виключно на <code style="color:#5ab8ff">api.figma.com</code> для читання стилів бібліотеки. Потрібен <b>тільки</b> для роботи з бібліотечними стилями — локальний аудит працює без нього.</p>
+        <div class="field-label">Appearance</div>
+        <div style="display:flex;gap:6px">
+          <button type="button" id="theme-btn-dark" onclick="setTheme('dark')" class="secondary" style="flex:1">🌙 Dark</button>
+          <button type="button" id="theme-btn-light" onclick="setTheme('light')" class="secondary" style="flex:1">☀️ Light</button>
         </div>
       </div>
 
       <div style="margin-bottom:14px">
-        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Library File Key</div>
+        <div class="field-label">Personal Access Token <span style="color:var(--c-666)">(optional)</span></div>
+        <input type="password" id="settings-token" placeholder="figd_…" style="width:100%" autocomplete="off" />
+        <p class="hint" style="margin-top:4px">Figma → Profile → Settings → Account → <b>Personal access tokens</b></p>
+        <div style="margin-top:6px;background:var(--c-252525);border-radius:6px;padding:8px 10px">
+          <p class="hint" style="line-height:1.6">🔒 The token is stored locally on this device only (<code style="color:var(--c-5ab8ff)">clientStorage</code>) and is sent exclusively to <code style="color:var(--c-5ab8ff)">api.figma.com</code> to read library styles. Required <b>only</b> for working with library styles — local audit works without it.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="field-label">Library File Key</div>
         <input type="text" id="settings-filekey" placeholder="XXXXXXXXXXXXXXXX" style="width:100%" />
-        <div style="margin-top:6px;background:#252525;border-radius:6px;padding:8px 10px">
-          <p class="hint" style="margin-bottom:4px">Відкрий бібліотечний файл у Figma і подивись на URL:</p>
-          <p style="font-size:10px;font-family:monospace;color:#555;word-break:break-all;line-height:1.6">figma.com/design/<span style="background:#1a3a5c;color:#5ab8ff;padding:1px 3px;border-radius:3px">XXXXXXXXXXXXXXXX</span>/Назва-файлу</p>
-          <p class="hint" style="margin-top:4px">Виділена частина — це і є File Key. Скопіюй її сюди.</p>
+        <div style="margin-top:6px;background:var(--c-252525);border-radius:6px;padding:8px 10px">
+          <p class="hint" style="margin-bottom:4px">Open the library file in Figma and look at the URL:</p>
+          <p style="font-size:10px;font-family:monospace;color:var(--c-555);word-break:break-all;line-height:1.6">figma.com/design/<span style="background:var(--c-1a3a5c);color:var(--c-5ab8ff);padding:1px 3px;border-radius:3px">XXXXXXXXXXXXXXXX</span>/file-name</p>
+          <p class="hint" style="margin-top:4px">The highlighted part is the File Key. Copy it here.</p>
         </div>
       </div>
 
       <div style="margin-bottom:20px">
-        <div style="font-size:11px;color:#aaa;margin-bottom:4px">Library Name</div>
+        <div class="field-label">Library Name</div>
         <input type="text" id="settings-libname" placeholder="Design System" style="width:100%" />
-        <p class="hint" style="margin-top:4px">Довільна назва — наприклад <b>Design System</b> або <b>UI Kit</b>. Відображається як заголовок групи у випадаючому списку стилів.</p>
+        <p class="hint" style="margin-top:4px">Any name — for example <b>Design System</b> or <b>UI Kit</b>. Displayed as a group header in the styles dropdown.</p>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:8px">
         <button onclick="saveSettings()" style="width:100%">Save</button>
         <button onclick="testLibraryConnection()" class="secondary" style="width:100%">Test connection</button>
-        <span id="settings-status" style="font-size:11px;color:#555;text-align:center;min-height:16px"></span>
+        <span id="settings-status" style="font-size:11px;color:var(--c-555);text-align:center;min-height:16px"></span>
       </div>
 
     </div>
@@ -156,22 +308,45 @@
 <div class="tab-bar">
   <div class="tab-btn active" onclick="switchTab('tokens')">Tokens</div>
   <div class="tab-btn" onclick="switchTab('styles')">Styles</div>
-  <div class="tab-btn" onclick="switchTab('preview')">Preview</div>
   <div class="tab-btn" onclick="switchTab('audit')">Audit</div>
+  <button class="tab-settings-btn" onclick="toggleSettings()" title="Library settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 12C15.5 13.933 13.933 15.5 12 15.5C10.067 15.5 8.5 13.933 8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12Z" stroke="currentColor" stroke-width="1.5"/><path d="M20.7906 9.15201C21.5969 10.5418 22 11.2366 22 12C22 12.7634 21.5969 13.4582 20.7906 14.848L18.8669 18.1638C18.0638 19.548 17.6623 20.2402 17.0019 20.6201C16.3416 21 15.5402 21 13.9373 21H10.0627C8.45982 21 7.6584 21 6.99807 20.6201C6.33774 20.2402 5.93619 19.548 5.13311 18.1638L3.20942 14.848C2.40314 13.4582 2 12.7634 2 12C2 11.2366 2.40314 10.5418 3.20942 9.152L5.13311 5.83621C5.93619 4.45196 6.33774 3.75984 6.99807 3.37992C7.6584 3 8.45982 3 10.0627 3H13.9373C15.5402 3 16.3416 3 17.0019 3.37992C17.6623 3.75984 18.0638 4.45197 18.8669 5.83622L20.7906 9.15201Z" stroke="currentColor" stroke-width="1.5"/></svg></button>
 </div>
 
 <div id="status-global" class="status" style="margin:10px 16px 0"></div>
-<div id="missing-tokens-box" style="display:none;background:#2a2a2a;border:1px solid #f59f00;border-radius:8px;padding:14px;margin:10px 16px 0"></div>
+<div id="missing-tokens-box" style="display:none;background:var(--c-2a2a2a);border:1px solid var(--c-f59f00);border-radius:8px;padding:14px;margin:10px 16px 0"></div>
 
 <!-- ══════════════════════════════════════════════════════════════════
      TAB 1 — TOKENS
 ══════════════════════════════════════════════════════════════════ -->
 <div class="tab-pane active" id="tab-tokens">
 
+  <!-- Primitive Scale section -->
+  <div class="section" id="scale-section" style="margin-bottom:10px">
+    <h3>Primitive Scale</h3>
+    <div id="scale-state-loading" style="font-size:11px;color:var(--muted-foreground)">Scanning…</div>
+    <div id="scale-state-found" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;color:var(--muted-foreground);line-height:1.6">
+          <code style="font-family:ui-monospace,monospace;font-size:10px;color:var(--foreground)">Primitive/scale</code>
+          · base <b id="scale-base-label" style="color:var(--foreground)">—</b>px
+          · <span id="scale-count-label" style="color:var(--muted-foreground)">—</span> vars
+        </span>
+        <button id="btn-switch-scale" onclick="doSwitchScale()" class="secondary sm">→ —px</button>
+      </div>
+    </div>
+    <div id="scale-state-missing" style="display:none">
+      <p id="scale-missing-reason" style="font-size:11px;color:var(--muted-foreground);margin-bottom:8px"></p>
+      <div style="display:flex;gap:8px">
+        <button onclick="doCreateScale(14)" class="secondary sm">Create · 14px</button>
+        <button onclick="doCreateScale(16)" class="secondary sm">Create · 16px</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Setup sub-panel (shown when no Typography collection) -->
   <div id="setup-panel">
     <div class="info-banner">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="#7db8e0"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25h-1.5V4.5h1.5zm0 5.75v1.5h-1.5v-1.5h1.5z"/></svg>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25h-1.5V4.5h1.5zm0 5.75v1.5h-1.5v-1.5h1.5z"/></svg>
       <span>No <strong>Typography</strong> variable collection found. Create base tokens first.</span>
     </div>
     <div class="section">
@@ -188,20 +363,17 @@
         <tr><th>Variable</th><th>Value</th></tr>
         <tr><td>fontFamily/body</td><td id="preview-family-body">IBM Plex Sans</td></tr>
         <tr><td>fontFamily/display</td><td id="preview-family-display">IBM Plex Sans</td></tr>
-        <tr><td>fontWeight/Regular … Bold Italic</td><td style="color:#555">8 weight tokens</td></tr>
-        <tr><td>fontSize/text-xs … text-5xl</td><td style="color:#555">9 size tokens</td></tr>
-        <tr><td>lineHeight/text-xs … text-5xl</td><td style="color:#555">9 line-height tokens</td></tr>
+        <tr><td>fontWeight/Regular … Bold Italic</td><td style="color:var(--c-555)">8 weight tokens</td></tr>
+        <tr><td>fontSize/text-xs … text-5xl</td><td style="color:var(--c-555)">9 size tokens</td></tr>
+        <tr><td>lineHeight/text-xs … text-5xl</td><td style="color:var(--c-555)">9 line-height tokens</td></tr>
       </table>
-    </div>
-    <div class="btn-row">
-      <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Typography Tokens</button>
     </div>
   </div>
 
   <!-- Token status table (shown when Typography exists) -->
   <div id="tokens-status-panel" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-size:11px;color:#555">Typography variable collection</span>
+      <span style="font-size:11px;color:var(--c-555)">Typography variable collection</span>
       <button onclick="refreshTokens()" class="secondary" style="padding:4px 10px;font-size:10px">↻ Refresh</button>
     </div>
     <div id="tok-table-wrap"></div>
@@ -234,9 +406,9 @@
     <h3>Sizes</h3>
     <div class="chip-grid" id="size-chips"></div>
     <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(true)">Select all</span>
-      <span style="font-size:10px;color:#444">·</span>
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllSizes(false)">Deselect all</span>
+      <button type="button" class="link-btn" onclick="selectAllSizes(true)">Select all</button>
+      <span style="font-size:10px;color:var(--muted-foreground)">·</span>
+      <button type="button" class="link-btn" onclick="selectAllSizes(false)">Deselect all</button>
     </div>
     <div class="add-form" id="add-size-form">
       <div class="fields">
@@ -256,9 +428,9 @@
     <h3>Weights</h3>
     <div class="chip-grid" id="weight-chips"></div>
     <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllWeights(true)">Select all</span>
-      <span style="font-size:10px;color:#444">·</span>
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="selectAllWeights(false)">Deselect all</span>
+      <button type="button" class="link-btn" onclick="selectAllWeights(true)">Select all</button>
+      <span style="font-size:10px;color:var(--muted-foreground)">·</span>
+      <button type="button" class="link-btn" onclick="selectAllWeights(false)">Deselect all</button>
     </div>
     <div class="add-form" id="add-weight-form">
       <div class="fields">
@@ -273,146 +445,175 @@
     </div>
   </div>
 
-  <p class="preview-count" id="preview-count">— styles will be created</p>
-  <div class="btn-row">
-    <button onclick="createStyles()" id="btn-create" class="success">Create Text Styles</button>
-  </div>
+  <!-- Preview frame (collapsible) -->
+  <details class="section" id="preview-section" style="padding:0">
+    <summary style="list-style:none;cursor:pointer;padding:12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--c-555);letter-spacing:0.5px;user-select:none;display:flex;align-items:center;gap:6px">
+      <span class="preview-caret" style="transition:transform .15s">▸</span> Preview style table
+    </summary>
+    <div style="padding:0 12px 12px">
+      <div class="row" style="margin-bottom:4px">
+        <label>Base (px)</label>
+        <input type="number" id="base-size" value="16" min="1" max="32" style="width:80px" oninput="renderPreviewTable()" />
+      </div>
+      <p class="hint" style="margin-bottom:10px">Used to calculate rem values: <b>rem = px ÷ base</b></p>
+
+      <div id="preview-table-wrap">
+        <table class="tok-table" style="table-layout:fixed">
+          <colgroup>
+            <col style="width:90px">
+            <col style="width:55px">
+            <col style="width:50px">
+            <col style="width:55px">
+            <col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Rem</th>
+              <th>Px</th>
+              <th>LH</th>
+              <th>Weights</th>
+            </tr>
+          </thead>
+          <tbody id="preview-tbody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </details>
+
 
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════
-     TAB 3 — PREVIEW FRAME
-══════════════════════════════════════════════════════════════════ -->
-<div class="tab-pane" id="tab-preview">
-
-  <div class="section">
-    <h3>Font family</h3>
-    <div class="row">
-      <label>Source</label>
-      <select id="preview-family-select" onchange="onPreviewFamilyChange()">
-        <option value="__manual__">Enter manually…</option>
-      </select>
-    </div>
-    <div id="preview-manual-row" class="row" style="display:none">
-      <label>Family name</label>
-      <input type="text" id="preview-manual-family" placeholder="e.g. Inter" />
-    </div>
-  </div>
-
-  <div class="section">
-    <h3>Base font size</h3>
-    <div class="row">
-      <label>Base (px)</label>
-      <input type="number" id="base-size" value="16" min="1" max="32" style="width:80px" oninput="renderPreviewTable()" />
-    </div>
-    <p class="hint">Used to calculate rem values: <b>rem = px ÷ base</b></p>
-  </div>
-
-  <div class="section">
-    <h3>What will be generated</h3>
-    <div id="preview-table-wrap">
-      <table class="tok-table" style="table-layout:fixed">
-        <colgroup>
-          <col style="width:90px">
-          <col style="width:55px">
-          <col style="width:50px">
-          <col style="width:55px">
-          <col>
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Token</th>
-            <th>Rem</th>
-            <th>Px</th>
-            <th>LH</th>
-            <th>Weights</th>
-          </tr>
-        </thead>
-        <tbody id="preview-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button onclick="createPreviewFrame()" id="btn-preview" class="success">Create Frame in Figma</button>
-  </div>
-
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════════
-     TAB 4 — AUDIT
+     TAB 3 — AUDIT
 ══════════════════════════════════════════════════════════════════ -->
 <div class="tab-pane" id="tab-audit">
 
   <div class="section">
     <h3>Scope</h3>
-    <div style="display:flex;gap:16px;margin-bottom:4px;flex-wrap:wrap">
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
-        <input type="radio" name="audit-scope" value="frame" style="accent-color:#0d99ff;width:14px;height:14px"> Selected Frame
+    <div class="choice-cards" role="radiogroup">
+      <label class="choice-card">
+        <span class="choice-card-head">
+          <input type="radio" name="audit-scope" value="frame">
+          <span class="choice-card-title">Selected Frame</span>
+        </span>
+        <span class="choice-card-desc">Within the selected frame.</span>
       </label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
-        <input type="radio" name="audit-scope" value="page" checked style="accent-color:#0d99ff;width:14px;height:14px"> Current Page
+      <label class="choice-card">
+        <span class="choice-card-head">
+          <input type="radio" name="audit-scope" value="page" checked>
+          <span class="choice-card-title">Current Page</span>
+        </span>
+        <span class="choice-card-desc">All nodes on this page.</span>
       </label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#ccc">
-        <input type="radio" name="audit-scope" value="document" style="accent-color:#0d99ff;width:14px;height:14px"> Entire Document
+      <label class="choice-card">
+        <span class="choice-card-head">
+          <input type="radio" name="audit-scope" value="document">
+          <span class="choice-card-title">Entire Document</span>
+        </span>
+        <span class="choice-card-desc">Every page in the file.</span>
       </label>
     </div>
-    <p class="hint">Scans text nodes with no Text Style attached. Only texts inside <b>Main Components</b> or standalone (not in any component/instance) are eligible for style assignment.</p>
-  </div>
-
-  <div class="btn-row" id="audit-scan-row" style="margin-bottom:10px">
-    <button onclick="auditScan()" id="btn-audit-scan" class="success">Scan</button>
   </div>
 
   <!-- Summary bar -->
-  <div id="audit-summary" style="display:none;font-size:11px;color:#888;margin-bottom:10px;padding:8px 12px;background:#252525;border-radius:6px;display:none">
+  <div id="audit-summary" class="audit-summary" style="display:none">
     <span id="audit-summary-text"></span>
-    <div style="margin-top:6px;display:flex;gap:8px">
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="auditSelectAll(true)">Select all</span>
-      <span style="font-size:10px;color:#444">·</span>
-      <span style="font-size:10px;color:#555;cursor:pointer" onclick="auditSelectAll(false)">Deselect all</span>
+    <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+      <span class="audit-link" style="font-size:10px" onclick="auditSelectAll(true)">Select all</span>
+      <span style="font-size:10px;color:var(--muted-foreground)">·</span>
+      <span class="audit-link" style="font-size:10px" onclick="auditSelectAll(false)">Deselect all</span>
     </div>
   </div>
 
   <!-- Results -->
   <div id="audit-results-wrap"></div>
 
-  <!-- Apply button (hidden until scan) -->
-  <div id="audit-apply-row" style="display:none;margin-top:10px" class="btn-row">
-    <button onclick="auditApply()" id="btn-audit-apply" class="success">Apply Selected Styles</button>
-    <button onclick="auditScan()" class="secondary">Re-scan</button>
-  </div>
 
 </div>
 
 <style>
-  /* ── Audit table ── */
-  .audit-group { margin-bottom: 10px; }
-  .audit-group-hdr {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 10px; background: #252525; border-radius: 6px 6px 0 0;
-    cursor: pointer; user-select: none;
-  }
-  .audit-group-hdr .frame-name { font-size: 11px; font-weight: 600; color: #ccc; }
-  .audit-group-hdr .frame-count { font-size: 10px; color: #555; }
-  .audit-group-body { background: #222; border-radius: 0 0 6px 6px; overflow: hidden; }
-  .audit-row { display: grid; grid-template-columns: 1fr 120px 120px 70px 28px; gap: 0; border-bottom: 1px solid #2a2a2a; padding: 6px 10px; align-items: center; }
+  /* ── Audit data-table (shadcn) ── */
+  #audit-results-wrap:not(:empty) { border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); overflow: hidden; }
+  .audit-col-hdr { display: grid; gap: 0; padding: 0 10px; height: 38px; align-items: center; background: var(--muted); border-bottom: 1px solid var(--border); }
+  .audit-col-hdr span { font-size: 10px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; }
+  .audit-row { display: grid; gap: 0; border-bottom: 1px solid var(--border); padding: 8px 10px; align-items: center; transition: background .1s; }
   .audit-row:last-child { border-bottom: none; }
-  .audit-row.no-match { opacity: 0.5; }
-  .audit-col-hdr { display: grid; grid-template-columns: 1fr 120px 120px 70px 28px; gap: 0; padding: 4px 10px; background: #1e1e1e; border-bottom: 1px solid #2a2a2a; }
-  .audit-col-hdr span { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .4px; }
-  .audit-node-name { font-size: 11px; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .audit-current { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .audit-match { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .audit-match.has-match { color: #5ab8ff; }
-  .audit-match.no-match  { color: #555; }
-  .audit-ctx { font-size: 10px; }
-  .ctx-main { color: #a9e34b; }
-  .ctx-plain { color: #666; }
-  .audit-cb input { accent-color: #0d99ff; width: 14px; height: 14px; cursor: pointer; }
-  .audit-sel-btn { background: none; border: 1px solid #3a3a3a; border-radius: 4px; color: #555; font-size: 10px; padding: 2px 6px; cursor: pointer; white-space: nowrap; transition: color .1s, border-color .1s; }
-  .audit-sel-btn:hover { color: #0d99ff; border-color: #0d99ff; background: none; }
+  .audit-row:hover { background: color-mix(in oklab, var(--muted) 50%, transparent); }
+  .audit-row:has(input[type=checkbox]:checked) { background: color-mix(in oklab, var(--muted) 65%, transparent); }
+  .audit-row.no-match { opacity: 0.55; }
+  .audit-current { font-size: 11px; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .audit-ctx { font-size: 11px; }
+  .ctx-main { color: var(--success-fg); }
+  .ctx-plain { color: var(--muted-foreground); }
+
+  /* checkbox (shadcn) */
+  .audit-cb input[type=checkbox], #audit-toggle-all {
+    appearance: none; -webkit-appearance: none; margin: 0; flex-shrink: 0;
+    width: 16px; height: 16px; border: 1px solid var(--input); border-radius: 4px;
+    background: var(--background); cursor: pointer; position: relative;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  .audit-cb input[type=checkbox]:hover, #audit-toggle-all:hover { border-color: var(--ring); }
+  .audit-cb input[type=checkbox]:checked, #audit-toggle-all:checked { background: var(--primary); border-color: var(--primary); }
+  /* lucide "Check" icon centered (shadcn indicator) */
+  .audit-cb input[type=checkbox]:checked::after, #audit-toggle-all:checked::after {
+    content: ""; position: absolute; inset: 0; margin: auto; width: 13px; height: 13px;
+    background-color: var(--primary-foreground);
+    -webkit-mask: var(--check-icon) center / contain no-repeat;
+            mask: var(--check-icon) center / contain no-repeat;
+  }
+  .audit-cb input[type=checkbox]:focus-visible, #audit-toggle-all:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
+
+  /* style <select> in the Apply column inherits global shadcn select styling */
+  .audit-style-sel { width: 100%; font-size: 10px; padding: 4px 6px; }
+
+  /* "Select in Figma" ghost button */
+  .audit-sel-btn { background: none; border: 1px solid var(--border); border-radius: calc(var(--radius) - 6px); color: var(--muted-foreground); font-size: 10px; padding: 3px 7px; cursor: pointer; white-space: nowrap; transition: color .1s, border-color .1s, background .1s; }
+  .audit-sel-btn:hover { color: var(--foreground); border-color: var(--ring); background: var(--muted); }
+
+  /* summary panel (shadcn card) */
+  .audit-summary { font-size: 11px; color: var(--muted-foreground); margin-bottom: 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); }
+  .audit-summary .audit-link { cursor: pointer; color: var(--foreground); }
+  .audit-summary .audit-link:hover { text-decoration: underline; }
 </style>
+
+<!-- ── Fixed footer ── -->
+<div id="plugin-footer">
+
+  <!-- Tokens tab footer -->
+  <div class="footer-section" id="footer-tokens">
+    <span class="footer-left" id="footer-tokens-info"></span>
+    <div class="footer-right">
+      <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Typography Tokens</button>
+    </div>
+  </div>
+
+  <!-- Styles tab footer -->
+  <div class="footer-section" id="footer-styles">
+    <p class="preview-count footer-left" id="preview-count">— styles will be created</p>
+    <div class="footer-right">
+      <button onclick="createPreviewFrame()" id="btn-preview" class="secondary">Create Example</button>
+      <button onclick="createStyles()" id="btn-create" class="success">Generate Style</button>
+    </div>
+  </div>
+
+  <!-- Audit tab footer -->
+  <div class="footer-section" id="footer-audit">
+    <span class="footer-left" id="footer-audit-info"></span>
+    <div class="footer-right">
+      <div id="audit-scan-row">
+        <button onclick="auditScan()" id="btn-audit-scan" class="success">Scan</button>
+      </div>
+      <div id="audit-apply-row" style="display:none;gap:8px" class="footer-right">
+        <button onclick="auditApply()" id="btn-audit-apply" class="success">Apply Selected Styles</button>
+        <button onclick="auditScan()" class="secondary">Re-scan</button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
@@ -454,14 +655,67 @@ const EXPECTED_TOKENS = [
   ...BASE_SCALE.map(s => ({ group: 'Line Height', name: 'lineHeight/' + s.token, type: 'FLOAT' })),
 ];
 
+// ── Primitive Scale state ────────────────────────────────────────────────────
+let _scaleCurrentBase = null;
+
+function updateScaleSection(msg) {
+  document.getElementById('scale-state-loading').style.display = 'none';
+  if (msg.found) {
+    _scaleCurrentBase = msg.currentBase;
+    const other = msg.currentBase === 14 ? 16 : 14;
+    document.getElementById('scale-base-label').textContent = msg.currentBase;
+    document.getElementById('scale-count-label').textContent = msg.count;
+    document.getElementById('btn-switch-scale').textContent = '→ ' + other + 'px';
+    document.getElementById('scale-state-found').style.display = 'block';
+    document.getElementById('scale-state-missing').style.display = 'none';
+  } else {
+    const reason = msg.reason === 'no-primitive'
+      ? 'No Primitive collection found in this file.'
+      : 'Primitive collection exists but has no scale group.';
+    document.getElementById('scale-missing-reason').textContent = reason;
+    document.getElementById('scale-state-found').style.display = 'none';
+    document.getElementById('scale-state-missing').style.display = 'block';
+  }
+}
+
+function doSwitchScale() {
+  if (_scaleCurrentBase === null) return;
+  const newBase = _scaleCurrentBase === 14 ? 16 : 14;
+  const btn = document.getElementById('btn-switch-scale');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  parent.postMessage({ pluginMessage: { type: 'update-scale', newBase } }, '*');
+}
+
+function doCreateScale(base) {
+  showStatus('Creating Primitive/scale with ' + base + 'px base…', '');
+  parent.postMessage({ pluginMessage: { type: 'create-scale', base } }, '*');
+}
+
 let customSizes   = [];
 let customWeights = [];
 let scannedVarNames = new Set();   // names from scan
 let scannedStringVars = [];        // for dropdowns
 
 // ── Library settings ────────────────────────────────────────────────────
-let _settings = { token: '', fileKey: '', libName: '' };
+let _settings = { token: '', fileKey: '', libName: '', theme: 'dark' };
 let _libraryStylesFromAPI = [];
+
+function applyTheme(theme) {
+  const light = theme === 'light';
+  document.body.classList.toggle('theme-light', light);
+  const dBtn = document.getElementById('theme-btn-dark');
+  const lBtn = document.getElementById('theme-btn-light');
+  if (dBtn && lBtn) {
+    dBtn.className = light ? 'secondary' : '';
+    lBtn.className = light ? '' : 'secondary';
+  }
+}
+
+function setTheme(theme) {
+  _settings.theme = theme;
+  applyTheme(theme);
+  parent.postMessage({ pluginMessage: { type: 'save-settings', settings: _settings } }, '*');
+}
 
 function loadSettings() {
   // Request saved settings from sandbox (figma.clientStorage)
@@ -469,10 +723,11 @@ function loadSettings() {
 }
 
 function applySettingsToUI(settings) {
-  _settings = Object.assign({ token: '', fileKey: '', libName: '' }, settings);
+  _settings = Object.assign({ token: '', fileKey: '', libName: '', theme: 'dark' }, settings);
   document.getElementById('settings-token').value   = _settings.token   || '';
   document.getElementById('settings-filekey').value = _settings.fileKey || '';
   document.getElementById('settings-libname').value = _settings.libName || '';
+  applyTheme(_settings.theme || 'dark');
 }
 
 function saveSettings() {
@@ -595,14 +850,14 @@ async function fetchLibraryStyles() {
 
 async function testLibraryConnection() {
   const s = document.getElementById('settings-status');
-  s.style.color = '#aaa'; s.textContent = 'Connecting…';
+  s.style.color = 'var(--c-aaa)'; s.textContent = 'Connecting…';
   saveSettings();
   try {
     const styles = await fetchLibraryStyles();
-    s.style.color = '#69db7c';
+    s.style.color = 'var(--c-69db7c)';
     s.textContent = '✓ Found ' + styles.length + ' text style' + (styles.length !== 1 ? 's' : '');
   } catch (e) {
-    s.style.color = '#ff6b6b'; s.textContent = '✗ ' + e.message;
+    s.style.color = 'var(--c-ff6b6b)'; s.textContent = '✗ ' + e.message;
   }
 }
 
@@ -627,6 +882,7 @@ function init() {
   });
 
   parent.postMessage({ pluginMessage: { type: 'scan-variables' } }, '*');
+  parent.postMessage({ pluginMessage: { type: 'scan-scale' } }, '*');
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -635,10 +891,13 @@ function init() {
 
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', ['tokens','styles','preview','audit'][i] === name);
+    btn.classList.toggle('active', ['tokens','styles','audit'][i] === name);
   });
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.footer-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('footer-' + name).classList.add('active');
+  updateFooterTokens();
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -663,7 +922,7 @@ function renderTokensTable(varNames) {
       const badge = exists
         ? '<span class="badge ok">✓ exists</span>'
         : '<span class="badge miss">✗ missing</span>';
-      html += '<tr><td>' + t.name + '</td><td style="color:#555">' + t.type + '</td><td>' + badge + '</td></tr>';
+      html += '<tr><td>' + t.name + '</td><td style="color:var(--c-555)">' + t.type + '</td><td>' + badge + '</td></tr>';
     });
   }
   html += '</tbody></table>';
@@ -671,11 +930,11 @@ function renderTokensTable(varNames) {
   const missing = EXPECTED_TOKENS.filter(t => !scannedVarNames.has(t.name));
   if (missing.length > 0) {
     html += '<div style="margin-top:10px;display:flex;gap:8px;align-items:center">'
-      + '<span style="font-size:11px;color:#ff6b6b">' + missing.length + ' token' + (missing.length > 1 ? 's' : '') + ' missing</span>'
-      + '<button onclick="addAllMissing()" style="padding:4px 12px;font-size:11px;background:#2f9e44;color:#fff;border:none;border-radius:5px;cursor:pointer">Add Missing Tokens</button>'
+      + '<span style="font-size:11px;color:var(--c-ff6b6b)">' + missing.length + ' token' + (missing.length > 1 ? 's' : '') + ' missing</span>'
+      + '<button onclick="addAllMissing()" class="success sm">Add Missing Tokens</button>'
       + '</div>';
   } else {
-    html += '<div style="margin-top:8px;font-size:11px;color:#69db7c">✓ All tokens present</div>';
+    html += '<div style="margin-top:8px;font-size:11px;color:var(--c-69db7c)">✓ All tokens present</div>';
   }
 
   wrap.innerHTML = html;
@@ -728,6 +987,15 @@ function addAllMissing() {
 function hideSetupPanel() {
   document.getElementById('setup-panel').style.display = 'none';
   document.getElementById('tokens-status-panel').style.display = 'block';
+  updateFooterTokens();
+}
+
+function updateFooterTokens() {
+  const setupVisible = document.getElementById('setup-panel').style.display !== 'none';
+  const btn = document.getElementById('btn-create-tokens');
+  const info = document.getElementById('footer-tokens-info');
+  if (btn) btn.style.display = setupVisible ? '' : 'none';
+  if (info) info.textContent = setupVisible ? 'No Typography collection found' : '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -845,7 +1113,6 @@ function populateFamilyDropdowns(vars) {
   scannedStringVars = vars;
   [
     { sel: 'family-select',         onchange: onFamilySelectChange },
-    { sel: 'preview-family-select', onchange: onPreviewFamilyChange },
   ].forEach(({ sel, onchange }) => {
     const el = document.getElementById(sel);
     while (el.options.length > 1) el.remove(1);
@@ -909,16 +1176,6 @@ function doCreateStyles() {
 // TAB 3 — PREVIEW FRAME
 // ═══════════════════════════════════════════════════════════════════════
 
-function onPreviewFamilyChange() {
-  const isManual = document.getElementById('preview-family-select').value === '__manual__';
-  document.getElementById('preview-manual-row').style.display = isManual ? 'flex' : 'none';
-}
-
-function getPreviewFamily() {
-  const sel = document.getElementById('preview-family-select');
-  return sel.value === '__manual__' ? document.getElementById('preview-manual-family').value.trim() : sel.value;
-}
-
 function renderPreviewTable() {
   const base      = parseInt(document.getElementById('base-size').value, 10) || 16;
   const checkedSz = checkedValues('size-chips');
@@ -935,14 +1192,14 @@ function renderPreviewTable() {
       + '<td class="val">' + rem + 'rem</td>'
       + '<td class="val">' + s.size + '</td>'
       + '<td class="val">' + s.lh + '</td>'
-      + '<td class="val" style="color:#888;font-size:10px">' + weightLabels + '</td>'
+      + '<td class="val" style="color:var(--c-888);font-size:10px">' + weightLabels + '</td>'
       + '</tr>';
   });
-  document.getElementById('preview-tbody').innerHTML = html || '<tr><td colspan="5" style="color:#555;padding:10px 8px">No sizes selected</td></tr>';
+  document.getElementById('preview-tbody').innerHTML = html || '<tr><td colspan="5" style="color:var(--c-555);padding:10px 8px">No sizes selected</td></tr>';
 }
 
 function createPreviewFrame() {
-  const family = getPreviewFamily();
+  const family = getFontFamily();
   if (!family) { showStatus('Enter a font family name.', 'error'); return; }
 
   const checkedSizes   = checkedValues('size-chips');
@@ -987,16 +1244,16 @@ function showMissingTokensBox(missing) {
   _missingTokensCache = missing;
   const groups = {};
   missing.forEach(m => { if (!groups[m.group]) groups[m.group] = []; groups[m.group].push(m); });
-  let html = '<div style="font-size:11px;color:#fcc419;margin-bottom:6px;font-weight:600">⚠ Missing tokens (' + missing.length + ')</div>';
+  let html = '<div style="font-size:11px;color:var(--c-fcc419);margin-bottom:6px;font-weight:600">⚠ Missing tokens (' + missing.length + ')</div>';
   for (const [group, items] of Object.entries(groups)) {
-    html += '<div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">' + group + '</div>';
+    html += '<div style="font-size:10px;color:var(--c-555);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">' + group + '</div>';
     items.forEach(m => {
-      html += '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #262626"><span style="font-family:monospace;font-size:10px;color:#5ab8ff">' + m.name + '</span><span style="font-size:10px;color:#555">' + m.expected + '</span></div>';
+      html += '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--c-262626)"><span style="font-family:monospace;font-size:10px;color:var(--c-5ab8ff)">' + m.name + '</span><span style="font-size:10px;color:var(--c-555)">' + m.expected + '</span></div>';
     });
   }
   html += '<div style="display:flex;gap:8px;margin-top:12px">'
-    + '<button id="btn-add-missing" onclick="addMissingTokens()" style="background:#2f9e44;color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:500">Add Missing Tokens</button>'
-    + '<button onclick="hideMissingTokensBox()" style="background:#3a3a3a;color:#ccc;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px">Dismiss</button>'
+    + '<button id="btn-add-missing" onclick="addMissingTokens()" class="success sm">Add Missing Tokens</button>'
+    + '<button onclick="hideMissingTokensBox()" class="secondary sm">Dismiss</button>'
     + '</div>';
   const box = document.getElementById('missing-tokens-box');
   box.innerHTML = html; box.style.display = 'block';
@@ -1066,14 +1323,14 @@ onmessage = (e) => {
 
   if (msg.type === 'tokens-missing') {
     const btn = document.getElementById('btn-create');
-    btn.disabled = false; btn.textContent = 'Create Text Styles';
+    btn.disabled = false; btn.textContent = 'Generate Style';
     showStatus('', '');
     showMissingTokensBox(msg.missing);
   }
 
   if (msg.type === 'styles-created') {
     const btn = document.getElementById('btn-create');
-    btn.disabled = false; btn.textContent = 'Create Text Styles';
+    btn.disabled = false; btn.textContent = 'Generate Style';
     _pendingPayload = null;
     let text = 'Done! Created ' + msg.created + ' style' + (msg.created !== 1 ? 's' : '') + '.';
     if (msg.skipped) text += ' Skipped ' + msg.skipped + ' (already exist).';
@@ -1100,7 +1357,7 @@ onmessage = (e) => {
 
   if (msg.type === 'preview-created') {
     const btn = document.getElementById('btn-preview');
-    btn.disabled = false; btn.textContent = 'Create Frame in Figma';
+    btn.disabled = false; btn.textContent = 'Create Example';
     showStatus('Preview frame created with ' + msg.rows + ' rows.', 'success');
   }
 
@@ -1110,13 +1367,34 @@ onmessage = (e) => {
 
   if (msg.type === 'settings-saved') {
     const s = document.getElementById('settings-status');
-    s.style.color = '#69db7c'; s.textContent = '✓ Saved';
+    s.style.color = 'var(--c-69db7c)'; s.textContent = '✓ Saved';
     setTimeout(() => { s.textContent = ''; }, 2000);
+  }
+
+  if (msg.type === 'scale-ready') {
+    updateScaleSection(msg);
+  }
+
+  if (msg.type === 'scale-updated') {
+    _scaleCurrentBase = msg.newBase;
+    const other = msg.newBase === 14 ? 16 : 14;
+    document.getElementById('scale-base-label').textContent = msg.newBase;
+    document.getElementById('btn-switch-scale').textContent = '→ ' + other + 'px';
+    const btn = document.getElementById('btn-switch-scale');
+    btn.disabled = false;
+    showStatus('Scale updated to ' + msg.newBase + 'px base · ' + msg.updated + ' variables updated.', 'success');
+  }
+
+  if (msg.type === 'scale-created') {
+    showStatus('Created ' + msg.created + ' scale variables (base: ' + msg.base + 'px).', 'success');
+    document.getElementById('scale-state-loading').style.display = 'block';
+    document.getElementById('scale-state-missing').style.display = 'none';
+    parent.postMessage({ pluginMessage: { type: 'scan-scale' } }, '*');
   }
 
   if (msg.type === 'error') {
     showStatus(msg.text, 'error');
-    ['btn-create','btn-preview','btn-create-tokens'].forEach(id => {
+    ['btn-create','btn-preview','btn-create-tokens','btn-switch-scale'].forEach(id => {
       const b = document.getElementById(id);
       if (b) { b.disabled = false; b.textContent = b.textContent.replace('…','').trim(); }
     });
@@ -1201,7 +1479,7 @@ function buildStyleSelect(pgIdx, selectedId, selectedName) {
     opts += '</optgroup>';
   }
 
-  return '<select class="audit-style-sel" data-pg="' + pgIdx + '" style="background:#2e2e2e;border:1px solid #3a3a3a;border-radius:4px;color:#e0e0e0;font-size:10px;padding:3px 6px;width:100%">' + opts + '</select>';
+  return '<select class="audit-style-sel" data-pg="' + pgIdx + '">' + opts + '</select>';
 }
 
 function renderAuditResults(data, total, matched, localStyles) {
@@ -1214,7 +1492,7 @@ function renderAuditResults(data, total, matched, localStyles) {
   const items = data && Array.isArray(data) ? data : [];
 
   if (total === 0 || items.length === 0) {
-    wrap.innerHTML = '<div style="text-align:center;padding:24px 0;font-size:11px;color:#555">No text nodes found</div>';
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 0;font-size:11px;color:var(--c-555)">No text nodes found</div>';
     document.getElementById('audit-scan-row').style.display = '';
     showStatus('', '');
     return;
@@ -1277,7 +1555,7 @@ function renderAuditResults(data, total, matched, localStyles) {
 
   let html = '';
   html += '<div class="audit-col-hdr" style="grid-template-columns:28px 1fr 56px 150px 50px 70px">'
-    + '<span title="Select / deselect all"><input type="checkbox" id="audit-toggle-all" checked onchange="auditToggleAll(this.checked)" style="accent-color:#0d99ff;width:14px;height:14px;cursor:pointer"></span>'
+    + '<span class="audit-cb" title="Select / deselect all"><input type="checkbox" id="audit-toggle-all" checked onchange="auditToggleAll(this.checked)"></span>'
     + '<span>Font params</span><span>Count</span><span>Apply style</span><span>Ctx</span><span></span>'
     + '</div>';
 
@@ -1302,13 +1580,13 @@ function renderAuditResults(data, total, matched, localStyles) {
     let countHtml;
     if (pg.styledCount > 0 && pg.unstyledCount > 0) {
       countHtml = '<span style="display:flex;flex-direction:column;gap:2px">'
-        + '<span style="background:#1a3a1a;border-radius:3px;padding:1px 5px;font-size:9px;color:#69db7c">✓ ' + pg.styledCount + '</span>'
-        + '<span style="background:#3a1a1a;border-radius:3px;padding:1px 5px;font-size:9px;color:#ff8080">○ ' + pg.unstyledCount + '</span>'
+        + '<span style="background:var(--c-1a3a1a);border-radius:3px;padding:1px 5px;font-size:9px;color:var(--c-69db7c)">✓ ' + pg.styledCount + '</span>'
+        + '<span style="background:var(--c-3a1a1a);border-radius:3px;padding:1px 5px;font-size:9px;color:var(--c-ff8080)">○ ' + pg.unstyledCount + '</span>'
         + '</span>';
     } else if (pg.styledCount > 0) {
-      countHtml = '<span style="background:#1a3a1a;border-radius:4px;padding:1px 6px;font-size:10px;color:#69db7c">✓ ×' + pg.styledCount + '</span>';
+      countHtml = '<span style="background:var(--c-1a3a1a);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--c-69db7c)">✓ ×' + pg.styledCount + '</span>';
     } else {
-      countHtml = '<span style="background:#3a1a1a;border-radius:4px;padding:1px 6px;font-size:10px;color:#ff8080">○ ×' + pg.unstyledCount + '</span>';
+      countHtml = '<span style="background:var(--c-3a1a1a);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--c-ff8080)">○ ×' + pg.unstyledCount + '</span>';
     }
 
     const styleSelect = buildStyleSelect(pgIdx, pg.matchedStyleId || '', pg.matchedStyleName);
@@ -1317,8 +1595,8 @@ function renderAuditResults(data, total, matched, localStyles) {
     html += '<div class="audit-row' + (hasMatch ? '' : ' no-match') + '" style="grid-template-columns:28px 1fr 56px 150px 50px 70px;align-items:center">'
       + '<div class="audit-cb"><input type="checkbox" ' + (hasMatch ? 'checked' : '') + ' data-pg="' + pgIdx + '"></div>'
       + '<div style="font-size:11px;min-width:0">'
-        + '<div class="audit-current" style="color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escHtml(paramsStr) + '">' + escHtml(paramsStr) + '</div>'
-        + (pg.frameNames.size > 0 ? '<div style="font-size:9px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px" title="' + framesTitle + '">' + framesList + '</div>' : '')
+        + '<div class="audit-current" style="color:var(--c-ddd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escHtml(paramsStr) + '">' + escHtml(paramsStr) + '</div>'
+        + (pg.frameNames.size > 0 ? '<div style="font-size:9px;color:var(--c-555);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px" title="' + framesTitle + '">' + framesList + '</div>' : '')
       + '</div>'
       + '<div style="padding:0 4px">' + countHtml + '</div>'
       + '<div>' + styleSelect + '</div>'
@@ -1339,17 +1617,17 @@ function renderAuditResults(data, total, matched, localStyles) {
 
   const sumEl = document.getElementById('audit-summary');
   document.getElementById('audit-summary-text').innerHTML =
-    'Found <b style="color:#e0e0e0">' + items.length + '</b> nodes · '
-    + '<b style="color:#5ab8ff">' + matchedPgCount + '</b> group' + (matchedPgCount !== 1 ? 's' : '') + ' matched · '
-    + '<b style="color:#555">' + noMatch + '</b> no match'
-    + '<div style="font-size:9px;color:#666;margin-top:3px">Matching against '
-      + '<b style="color:#888">' + localCount + '</b> local + '
-      + '<b style="color:#888">' + libCount + '</b> library style' + (libCount !== 1 ? 's' : '')
-      + (libCount > 0 ? ' (<b style="color:#888">' + libWithSize + '</b> with size info)' : '')
-      + (libCount === 0 ? ' · <span style="color:#fcc419">no library loaded — set Token + File Key in ⚙ Settings to match against a library</span>' : '')
+    'Found <b style="color:var(--c-e0e0e0)">' + items.length + '</b> nodes · '
+    + '<b style="color:var(--c-5ab8ff)">' + matchedPgCount + '</b> group' + (matchedPgCount !== 1 ? 's' : '') + ' matched · '
+    + '<b style="color:var(--c-555)">' + noMatch + '</b> no match'
+    + '<div style="font-size:9px;color:var(--c-666);margin-top:3px">Matching against '
+      + '<b style="color:var(--c-888)">' + localCount + '</b> local + '
+      + '<b style="color:var(--c-888)">' + libCount + '</b> library style' + (libCount !== 1 ? 's' : '')
+      + (libCount > 0 ? ' (<b style="color:var(--c-888)">' + libWithSize + '</b> with size info)' : '')
+      + (libCount === 0 ? ' · <span style="color:var(--c-fcc419)">no library loaded — set Token + File Key in ⚙ Settings to match against a library</span>' : '')
       + '</div>'
       + (libCount > 0 && libWithSize === 0
-          ? '<div style="font-size:9px;color:#fcc419;margin-top:2px">Sample library style names: '
+          ? '<div style="font-size:9px;color:var(--c-fcc419);margin-top:2px">Sample library style names: '
             + (localStyles || []).filter(s => s.isLibrary).slice(0, 5).map(s => escHtml(s.name)).join(' · ')
             + '</div>'
           : '');
@@ -1413,6 +1691,7 @@ function escHtml(s) {
 // BOOT
 // ═══════════════════════════════════════════════════════════════════════
 init();
+switchTab('tokens');
 </script>
 </body>
 </html>
