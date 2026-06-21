@@ -17,6 +17,9 @@ figma.ui.onmessage = async (msg) => {
       case 'audit-scan':            return await auditScan(msg);
       case 'audit-apply':           return await auditApply(msg);
       case 'audit-select':          return await auditSelect(msg);
+      case 'scan-scale':            return await scanScale();
+      case 'update-scale':          return await updateScale(msg);
+      case 'create-scale':          return await createScale(msg);
       case 'load-settings': {
         const saved = await figma.clientStorage.getAsync('fsc_settings');
         figma.ui.postMessage({ type: 'settings-loaded', settings: saved || {} });
@@ -772,4 +775,127 @@ function resolvedValue(variable, collections) {
   if (!col) return null;
   const val = variable.valuesByMode[col.defaultModeId];
   return val !== undefined && val !== null ? String(val) : null;
+}
+
+// ─── PRIMITIVE SCALE ─────────────────────────────────────────────────────────
+
+async function scanScale() {
+  const allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  const allVars        = await figma.variables.getLocalVariablesAsync();
+
+  const primitiveCol = allCollections.find(function(c) { return c.name === 'Primitive'; });
+  if (!primitiveCol) {
+    figma.ui.postMessage({ type: 'scale-ready', found: false, reason: 'no-primitive' });
+    return;
+  }
+
+  const modeId    = primitiveCol.defaultModeId;
+  const scaleVars = allVars.filter(function(v) {
+    return v.variableCollectionId === primitiveCol.id && v.name.indexOf('scale/') === 0;
+  });
+
+  if (scaleVars.length === 0) {
+    figma.ui.postMessage({ type: 'scale-ready', found: false, reason: 'no-scale-group' });
+    return;
+  }
+
+  const baseVar    = scaleVars.find(function(v) { return v.name === 'scale/1'; });
+  const currentBase = (baseVar && typeof baseVar.valuesByMode[modeId] === 'number')
+    ? baseVar.valuesByMode[modeId]
+    : null;
+
+  figma.ui.postMessage({ type: 'scale-ready', found: true, currentBase: currentBase, count: scaleVars.length });
+}
+
+async function updateScale(msg) {
+  const newBase = msg.newBase;
+  const allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  const allVars        = await figma.variables.getLocalVariablesAsync();
+
+  const primitiveCol = allCollections.find(function(c) { return c.name === 'Primitive'; });
+  if (!primitiveCol) {
+    figma.ui.postMessage({ type: 'error', text: 'Primitive collection not found.' });
+    return;
+  }
+
+  const modeId    = primitiveCol.defaultModeId;
+  const scaleVars = allVars.filter(function(v) {
+    return v.variableCollectionId === primitiveCol.id && v.name.indexOf('scale/') === 0;
+  });
+
+  const baseVar = scaleVars.find(function(v) { return v.name === 'scale/1'; });
+  if (!baseVar || typeof baseVar.valuesByMode[modeId] !== 'number') {
+    figma.ui.postMessage({ type: 'error', text: 'scale/1 variable not found or has no numeric value.' });
+    return;
+  }
+  const currentBase = baseVar.valuesByMode[modeId];
+  if (currentBase === 0) {
+    figma.ui.postMessage({ type: 'error', text: 'scale/1 value is 0 — cannot compute ratio.' });
+    return;
+  }
+
+  var updated = 0;
+  for (var i = 0; i < scaleVars.length; i++) {
+    var v = scaleVars[i];
+    var cur = v.valuesByMode[modeId];
+    if (typeof cur !== 'number') continue;
+    var newVal = Math.round((cur / currentBase) * newBase * 1000) / 1000;
+    v.setValueForMode(modeId, newVal);
+    updated++;
+  }
+
+  figma.ui.postMessage({ type: 'scale-updated', newBase: newBase, updated: updated });
+}
+
+// Full PrimeOne-style primitive scale multipliers (34 entries)
+var SCALE_KEYS = [
+  'neg-2', 'neg-1-75', 'neg-1-5', 'neg-1-25', 'neg-1-125',
+  'neg-1', 'neg-0-875', 'neg-0-75', 'neg-0-625', 'neg-0-5',
+  'neg-0-375', 'neg-0-25',
+  '0-125', '0-25', '0-375', '0-5', '0-625', '0-75', '0-875',
+  '1', '1-125', '1-143', '1-25', '1-5', '1-625', '1-75',
+  '2', '2-5', '3', '3-5', '4', '5', '6', '7'
+];
+
+function parseScaleKey(key) {
+  var negative = false;
+  var part = key;
+  if (part.indexOf('neg-') === 0) { negative = true; part = part.slice(4); }
+  var num = parseFloat(part.replace('-', '.'));
+  if (isNaN(num)) return null;
+  return negative ? -num : num;
+}
+
+async function createScale(msg) {
+  var base = msg.base;
+  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+
+  var primitiveCol = allCollections.find(function(c) { return c.name === 'Primitive'; });
+  if (!primitiveCol) {
+    primitiveCol = figma.variables.createVariableCollection('Primitive');
+  }
+
+  var modeId  = primitiveCol.defaultModeId;
+  var allVars = await figma.variables.getLocalVariablesAsync();
+  var existing = {};
+  allVars.filter(function(v) { return v.variableCollectionId === primitiveCol.id; })
+    .forEach(function(v) { existing[v.name] = v; });
+
+  var created = 0;
+  for (var i = 0; i < SCALE_KEYS.length; i++) {
+    var key        = SCALE_KEYS[i];
+    var multiplier = parseScaleKey(key);
+    if (multiplier === null) continue;
+    var value   = Math.round(multiplier * base * 1000) / 1000;
+    var varName = 'scale/' + key;
+    if (existing[varName]) {
+      existing[varName].setValueForMode(modeId, value);
+    } else {
+      var v = figma.variables.createVariable(varName, primitiveCol, 'FLOAT');
+      v.setValueForMode(modeId, value);
+    }
+    created++;
+  }
+
+  figma.ui.postMessage({ type: 'scale-created', base: base, created: created });
 }
