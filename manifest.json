@@ -1,6 +1,6 @@
 {
-  "name": "Font Styles Creator",
-  "id": "font-styles-creator",
+  "name": "Style Design Studio",
+  "id": "style-design-studio",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",

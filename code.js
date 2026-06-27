@@ -1,4 +1,4 @@
-// Font Styles Creator — main plugin logic
+// Style Design Studio — main plugin logic
 
 figma.showUI(__html__, { width: 560, height: 680 });
 
