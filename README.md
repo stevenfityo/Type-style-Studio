@@ -2,6 +2,8 @@
 
 A Figma plugin for building design-system foundations: it generates **typography tokens**, **Tailwind CSS color primitives**, and a **primitive spacing scale** as local Variables, batch-creates **Text Styles** from a Tailwind type scale, and includes a **typography audit** that finds unstyled text and matches it to existing styles.
 
+<img width="1768" height="759" alt="PlugInScreens" src="https://github.com/user-attachments/assets/86224545-f3bc-4979-834b-29eff709df00" />
+
 ## Features
 
 - **Tokens** — a *What to create* selector lets you generate **Typography**, **Colors**, or both in one click:
