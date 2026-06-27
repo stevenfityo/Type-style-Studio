@@ -28,8 +28,12 @@ The plugin follows the standard Figma plugin split:
 | UI → code | `create-missing-tokens` | Add missing tokens to existing collection |
 | UI → code | `validate-tokens` | Check all required tokens exist before creating styles |
 | UI → code | `create-styles` | Batch-create Figma Text Styles |
+| UI → code | `scan-colors` | Check if `_Primitives` color palette exists |
+| UI → code | `create-colors` | Create the Tailwind color primitives in `_Primitives` |
 | UI → code | `cancel` | Close the plugin |
 | code → UI | `variables-ready` | Returns string vars + hasTypography flag |
+| code → UI | `colors-ready` | Reports present/total Tailwind color vars in `_Primitives` |
+| code → UI | `colors-created` | Reports created/skipped color-variable counts |
 | code → UI | `tokens-created` | Typography collection created successfully |
 | code → UI | `missing-tokens-created` | Missing tokens added to existing collection |
 | code → UI | `tokens-ok` | All tokens validated — proceed to create styles |
@@ -57,6 +61,19 @@ The plugin follows the standard Figma plugin split:
   fontFamily: string
 }
 ```
+
+## Variable naming convention (`_Primitives` collection — colors)
+
+Tailwind CSS v3 default palette, primitives only (no semantic aliases yet).
+The Tokens tab "What to create" selector lets the user create Typography, Colors, or both.
+
+| Group | Name pattern | Type |
+|---|---|---|
+| Color shade | `color/blue/500`, `color/red/50` … `color/{family}/{shade}` | COLOR |
+| Base color | `color/white`, `color/black` | COLOR |
+
+22 families × 11 shades (50–950) + black/white = 244 variables. Hex values live in
+`TAILWIND_COLORS` / `TAILWIND_BASE` in `code.js` and are converted to Figma RGB on creation.
 
 ## Variable naming convention (Typography collection)
 

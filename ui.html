@@ -181,6 +181,24 @@
   .choice-card:hover { background: var(--muted); }
   .choice-card:has(input[type=radio]:checked) { border-color: var(--primary); background: var(--accent); }
   .choice-card:has(input[type=radio]:focus-visible) { box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
+  /* checkbox variant (multi-select choice cards) */
+  .choice-card input[type=checkbox] {
+    appearance: none; -webkit-appearance: none; margin: 0; flex-shrink: 0;
+    width: 16px; height: 16px; border: 1px solid var(--input); border-radius: 4px;
+    background: var(--background); cursor: pointer; position: relative;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  .choice-card input[type=checkbox]:hover { border-color: var(--ring); }
+  .choice-card input[type=checkbox]:checked { background: var(--primary); border-color: var(--primary); }
+  .choice-card input[type=checkbox]:checked::after {
+    content: ""; position: absolute; inset: 0; margin: auto; width: 13px; height: 13px;
+    background-color: var(--primary-foreground);
+    -webkit-mask: var(--check-icon) center / contain no-repeat;
+            mask: var(--check-icon) center / contain no-repeat;
+  }
+  .choice-card input[type=checkbox]:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
+  .choice-card:has(input[type=checkbox]:checked) { border-color: var(--primary); background: var(--accent); }
+  .choice-card:has(input[type=checkbox]:focus-visible) { box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent); }
   .choice-card-head { display: flex; align-items: center; gap: 8px; }
   .choice-card-title { font-size: 12px; font-weight: 500; color: var(--foreground); }
   .choice-card-desc { font-size: 10px; color: var(--muted-foreground); line-height: 1.4; }
@@ -226,6 +244,10 @@
   .group-hdr td { font-size: 10px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .5px; padding: 10px 8px 4px; background: var(--muted); }
   .group-hdr:hover td { background: var(--muted); }
 
+  /* ── Color swatch preview ── */
+  .swatch-strip { display: flex; flex-wrap: wrap; gap: 3px; }
+  .swatch-strip .sw { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); }
+
   /* ── misc ── */
   .sep { height: 1px; background: var(--border); margin: 10px 0; }
   .hint { font-size: 10px; color: var(--muted-foreground); margin-top: 6px; line-height: 1.5; }
@@ -250,7 +272,7 @@
   .token-table td:first-child { color: var(--foreground); font-family: ui-monospace, monospace; font-size: 10px; }
 </style>
 </head>
-<body>
+<body class="theme-light">
 
 
 <!-- ── Settings overlay ── -->
@@ -320,6 +342,12 @@
 ══════════════════════════════════════════════════════════════════ -->
 <div class="tab-pane active" id="tab-tokens">
 
+  <!-- Context banner — message adapts to what already exists -->
+  <div class="info-banner" id="context-banner" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25h-1.5V4.5h1.5zm0 5.75v1.5h-1.5v-1.5h1.5z"/></svg>
+    <span id="context-banner-text"></span>
+  </div>
+
   <!-- Primitive Scale section -->
   <div class="section" id="scale-section" style="margin-bottom:10px">
     <h3>Primitive Scale</h3>
@@ -343,19 +371,44 @@
     </div>
   </div>
 
+  <!-- What to create selector -->
+  <div class="section" id="create-scope-section">
+    <h3>What to create</h3>
+    <div class="choice-cards" role="group">
+      <label class="choice-card">
+        <span class="choice-card-head">
+          <input type="checkbox" id="scope-fonts" checked onchange="onScopeChange()">
+          <span class="choice-card-title">Typography</span>
+        </span>
+        <span class="choice-card-desc">Font family, weight, size &amp; line-height tokens.</span>
+      </label>
+      <label class="choice-card">
+        <span class="choice-card-head">
+          <input type="checkbox" id="scope-colors" onchange="onScopeChange()">
+          <span class="choice-card-title">Colors</span>
+        </span>
+        <span class="choice-card-desc">Tailwind palette primitives under <code>_Primitives</code>.</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Typography group ── -->
+  <div id="typography-group">
+
   <!-- Setup sub-panel (shown when no Typography collection) -->
   <div id="setup-panel">
-    <div class="info-banner">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25h-1.5V4.5h1.5zm0 5.75v1.5h-1.5v-1.5h1.5z"/></svg>
-      <span>No <strong>Typography</strong> variable collection found. Create base tokens first.</span>
-    </div>
     <div class="section">
       <h3>Font family</h3>
       <div class="row">
-        <label>Family</label>
+        <label>Body</label>
         <input type="text" id="setup-family" value="IBM Plex Sans" placeholder="e.g. Inter" />
       </div>
-      <p class="hint">Used for <b>fontFamily/body</b> and <b>fontFamily/display</b></p>
+      <p class="hint" style="margin-bottom:8px">Used for <b>fontFamily/body</b></p>
+      <div class="row" style="margin-bottom:0">
+        <label>Display</label>
+        <input type="text" id="setup-family-display" value="IBM Plex Sans" placeholder="Same as body" />
+      </div>
+      <p class="hint">Used for <b>fontFamily/display</b> — headings &amp; large text. Leave matching Body to use one family.</p>
     </div>
     <div class="section">
       <h3>Tokens that will be created</h3>
@@ -377,6 +430,34 @@
       <button onclick="refreshTokens()" class="secondary" style="padding:4px 10px;font-size:10px">↻ Refresh</button>
     </div>
     <div id="tok-table-wrap"></div>
+  </div>
+
+  </div><!-- end typography-group -->
+
+  <!-- ── Colors group ── -->
+  <div id="colors-group" style="display:none">
+    <div class="section" id="colors-section">
+      <h3>Colors</h3>
+
+      <div id="colors-state-loading" style="font-size:11px;color:var(--muted-foreground)">Scanning…</div>
+
+      <div id="colors-state-found" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+          <span style="font-size:11px;color:var(--muted-foreground);line-height:1.6">
+            <code style="font-family:ui-monospace,monospace;font-size:10px;color:var(--foreground)">_Primitives/color</code>
+            · <b id="colors-present-label" style="color:var(--foreground)">—</b> of <span id="colors-total-label">—</span> present
+          </span>
+          <span id="colors-complete-badge" class="badge ok" style="display:none;padding:2px 7px;border-radius:9999px;font-size:10px;font-weight:600;background:var(--success-bg);color:var(--success-fg)">✓ complete</span>
+        </div>
+      </div>
+
+      <div id="colors-state-missing" style="display:none">
+        <p style="font-size:11px;color:var(--muted-foreground);margin-bottom:10px">No Tailwind color primitives found. Create the full palette as variables under <code style="font-family:ui-monospace,monospace;font-size:10px;color:var(--foreground)">_Primitives</code>.</p>
+      </div>
+
+      <div class="swatch-strip" id="colors-swatches"></div>
+      <p class="hint" style="margin-top:8px">22 color families × 11 shades + black/white. Naming: <code>color/{family}/{shade}</code> — e.g. <b>color/blue/500</b>.</p>
+    </div>
   </div>
 
 </div>
@@ -586,7 +667,7 @@
   <div class="footer-section" id="footer-tokens">
     <span class="footer-left" id="footer-tokens-info"></span>
     <div class="footer-right">
-      <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Typography Tokens</button>
+      <button onclick="createTokens()" id="btn-create-tokens" class="success">Create Tokens</button>
     </div>
   </div>
 
@@ -691,13 +772,100 @@ function doCreateScale(base) {
   parent.postMessage({ pluginMessage: { type: 'create-scale', base } }, '*');
 }
 
+// ── Create scope (Typography / Colors) ────────────────────────────────────────
+function getScope() {
+  return {
+    fonts:  document.getElementById('scope-fonts').checked,
+    colors: document.getElementById('scope-colors').checked
+  };
+}
+
+function onScopeChange() { applyScopeVisibility(); }
+
+// ── Font family (body / display) ──────────────────────────────────────────────
+function getDisplayFamily() {
+  const d = document.getElementById('setup-family-display').value.trim();
+  return d || (document.getElementById('setup-family').value.trim() || 'IBM Plex Sans');
+}
+
+function updateFamilyPreview() {
+  const body = document.getElementById('setup-family').value.trim() || 'IBM Plex Sans';
+  document.getElementById('preview-family-body').textContent = body;
+  document.getElementById('preview-family-display').textContent = getDisplayFamily();
+}
+
+// ── Context banner — adapts to what already exists ────────────────────────────
+let _hasTypography = false;
+
+function updateContextBanner() {
+  const banner = document.getElementById('context-banner');
+  const txt    = document.getElementById('context-banner-text');
+  if (!banner || !txt) return;
+
+  const noFonts  = !_hasTypography;
+  const noColors = _colorsState.present === 0;
+
+  let html = '';
+  if (noFonts && noColors) {
+    html = 'No <strong>Typography</strong> or <strong>color</strong> tokens found yet. Choose what to create below and generate base tokens first.';
+  } else if (noFonts) {
+    html = 'No <strong>Typography</strong> variable collection found. Create base tokens first.';
+  } else if (noColors) {
+    html = 'No <strong>color</strong> primitives found. Create the Tailwind palette under <code>_Primitives</code>.';
+  }
+
+  if (html) { txt.innerHTML = html; banner.style.display = 'flex'; }
+  else      { banner.style.display = 'none'; }
+}
+
+function applyScopeVisibility() {
+  const scope = getScope();
+  document.getElementById('typography-group').style.display = scope.fonts  ? '' : 'none';
+  document.getElementById('colors-group').style.display     = scope.colors ? '' : 'none';
+  updateFooterTokens();
+}
+
+// ── Tailwind 500-shade swatches (visual preview only) ─────────────────────────
+const TAILWIND_500 = [
+  '#64748b','#6b7280','#71717a','#737373','#78716c','#ef4444','#f97316','#f59e0b',
+  '#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6',
+  '#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e'
+];
+
+let _colorsState = { found: false, present: 0, total: 0 };
+
+function renderColorSwatches() {
+  const wrap = document.getElementById('colors-swatches');
+  if (!wrap) return;
+  wrap.innerHTML = TAILWIND_500.map(h => '<span class="sw" style="background:' + h + '"></span>').join('');
+}
+
+function updateColorsSection(msg) {
+  _colorsState = { found: !!msg.found, present: msg.present || 0, total: msg.total || 0 };
+  document.getElementById('colors-state-loading').style.display = 'none';
+  const complete = _colorsState.total > 0 && _colorsState.present >= _colorsState.total;
+  if (msg.found) {
+    document.getElementById('colors-present-label').textContent = _colorsState.present;
+    document.getElementById('colors-total-label').textContent   = _colorsState.total;
+    document.getElementById('colors-complete-badge').style.display = complete ? 'inline-flex' : 'none';
+    document.getElementById('colors-state-found').style.display   = 'block';
+    document.getElementById('colors-state-missing').style.display = 'none';
+  } else {
+    document.getElementById('colors-state-found').style.display   = 'none';
+    document.getElementById('colors-state-missing').style.display = 'block';
+  }
+  updateFooterTokens();
+  updateContextBanner();
+}
+
+
 let customSizes   = [];
 let customWeights = [];
 let scannedVarNames = new Set();   // names from scan
 let scannedStringVars = [];        // for dropdowns
 
 // ── Library settings ────────────────────────────────────────────────────
-let _settings = { token: '', fileKey: '', libName: '', theme: 'dark' };
+let _settings = { token: '', fileKey: '', libName: '', theme: 'light' };
 let _libraryStylesFromAPI = [];
 
 function applyTheme(theme) {
@@ -723,11 +891,11 @@ function loadSettings() {
 }
 
 function applySettingsToUI(settings) {
-  _settings = Object.assign({ token: '', fileKey: '', libName: '', theme: 'dark' }, settings);
+  _settings = Object.assign({ token: '', fileKey: '', libName: '', theme: 'light' }, settings);
   document.getElementById('settings-token').value   = _settings.token   || '';
   document.getElementById('settings-filekey').value = _settings.fileKey || '';
   document.getElementById('settings-libname').value = _settings.libName || '';
-  applyTheme(_settings.theme || 'dark');
+  applyTheme(_settings.theme || 'light');
 }
 
 function saveSettings() {
@@ -874,15 +1042,15 @@ function init() {
   rebuildWeightChips();
   updatePreview();
   renderPreviewTable();
+  renderColorSwatches();
+  applyScopeVisibility();
 
-  document.getElementById('setup-family').addEventListener('input', e => {
-    const v = e.target.value || 'IBM Plex Sans';
-    document.getElementById('preview-family-body').textContent = v;
-    document.getElementById('preview-family-display').textContent = v;
-  });
+  document.getElementById('setup-family').addEventListener('input', updateFamilyPreview);
+  document.getElementById('setup-family-display').addEventListener('input', updateFamilyPreview);
 
   parent.postMessage({ pluginMessage: { type: 'scan-variables' } }, '*');
   parent.postMessage({ pluginMessage: { type: 'scan-scale' } }, '*');
+  parent.postMessage({ pluginMessage: { type: 'scan-colors' } }, '*');
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -965,7 +1133,9 @@ function addAllMissing() {
       const s = BASE_SCALE.find(s => 'lineHeight/'+s.token === t.name);
       expected = s ? s.lh + 'px' : '0px';
     } else if (t.group === 'Font Family') {
-      expected = document.getElementById('setup-family').value || 'IBM Plex Sans';
+      expected = t.name === 'fontFamily/display'
+        ? getDisplayFamily()
+        : (document.getElementById('setup-family').value.trim() || 'IBM Plex Sans');
     } else {
       // Font Weight — extract label after last slash
       const label = t.name.split('/').slice(1).join('/');
@@ -991,11 +1161,25 @@ function hideSetupPanel() {
 }
 
 function updateFooterTokens() {
+  const scope = getScope();
   const setupVisible = document.getElementById('setup-panel').style.display !== 'none';
-  const btn = document.getElementById('btn-create-tokens');
+  const btn  = document.getElementById('btn-create-tokens');
   const info = document.getElementById('footer-tokens-info');
-  if (btn) btn.style.display = setupVisible ? '' : 'none';
-  if (info) info.textContent = setupVisible ? 'No Typography collection found' : '';
+
+  const colorsComplete = _colorsState.total > 0 && _colorsState.present >= _colorsState.total;
+  const needFonts  = scope.fonts && setupVisible;          // Typography not created yet
+  const needColors = scope.colors && !colorsComplete;       // palette has gaps
+
+  if (btn) {
+    btn.textContent = 'Create Tokens';
+    btn.disabled = !(needFonts || needColors);
+  }
+
+  const parts = [];
+  if (scope.fonts && setupVisible) parts.push('No Typography collection found');
+  if (scope.colors && colorsComplete) parts.push('All colors present');
+  if (!scope.fonts && !scope.colors) parts.push('Select what to create above');
+  if (info) info.textContent = parts.join(' · ');
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1228,10 +1412,26 @@ function createPreviewFrame() {
 // ═══════════════════════════════════════════════════════════════════════
 
 function createTokens() {
-  const family = document.getElementById('setup-family').value.trim() || 'IBM Plex Sans';
+  const scope = getScope();
+  const setupVisible = document.getElementById('setup-panel').style.display !== 'none';
+  // Only create the Typography collection when it doesn't exist yet — calling
+  // create-tokens otherwise would spawn a duplicate collection.
+  const doFonts  = scope.fonts && setupVisible;
+  const doColors = scope.colors;
+
+  if (!doFonts && !doColors) { showStatus('Nothing to create — select Typography or Colors above.', 'warn'); return; }
+
   const btn = document.getElementById('btn-create-tokens');
   btn.disabled = true; btn.textContent = 'Creating…';
-  parent.postMessage({ pluginMessage: { type: 'create-tokens', fontFamily: family } }, '*');
+  showStatus('Creating tokens…', '');
+
+  if (doColors) {
+    parent.postMessage({ pluginMessage: { type: 'create-colors' } }, '*');
+  }
+  if (doFonts) {
+    const family = document.getElementById('setup-family').value.trim() || 'IBM Plex Sans';
+    parent.postMessage({ pluginMessage: { type: 'create-tokens', fontFamily: family, fontFamilyDisplay: getDisplayFamily() } }, '*');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1288,6 +1488,7 @@ onmessage = (e) => {
 
   if (msg.type === 'variables-ready') {
     populateFamilyDropdowns(msg.stringVars);
+    _hasTypography = msg.hasTypography;
     // Tab 1: show correct panel
     if (msg.hasTypography) {
       document.getElementById('setup-panel').style.display = 'none';
@@ -1298,6 +1499,8 @@ onmessage = (e) => {
       document.getElementById('setup-panel').style.display = 'block';
       document.getElementById('tokens-status-panel').style.display = 'none';
     }
+    updateFooterTokens();
+    updateContextBanner();
     renderPreviewTable();
   }
 
@@ -1307,10 +1510,13 @@ onmessage = (e) => {
 
   if (msg.type === 'tokens-created') {
     showStatus('Typography tokens created (family: ' + msg.family + ').', 'success');
-    const btn = document.getElementById('btn-create-tokens');
-    btn.disabled = false; btn.textContent = 'Create Typography Tokens';
+    _hasTypography = true;
     document.getElementById('setup-panel').style.display = 'none';
     document.getElementById('tokens-status-panel').style.display = 'block';
+    const btn = document.getElementById('btn-create-tokens');
+    btn.disabled = false; btn.textContent = 'Create Tokens';
+    updateFooterTokens();
+    updateContextBanner();
   }
 
   if (msg.type === 'missing-tokens-created') {
@@ -1373,6 +1579,17 @@ onmessage = (e) => {
 
   if (msg.type === 'scale-ready') {
     updateScaleSection(msg);
+  }
+
+  if (msg.type === 'colors-ready') {
+    updateColorsSection(msg);
+  }
+
+  if (msg.type === 'colors-created') {
+    let text = 'Created ' + msg.created + ' color variable' + (msg.created !== 1 ? 's' : '') + ' in _Primitives.';
+    if (msg.skipped) text += ' Skipped ' + msg.skipped + ' (already exist).';
+    showStatus(text, 'success');
+    // Follow-up colors-ready scan refreshes the section + footer button state.
   }
 
   if (msg.type === 'scale-updated') {
